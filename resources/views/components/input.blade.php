@@ -22,7 +22,12 @@
 
 <div class="form-group" @if($type === 'password') x-data="{ show: false }" @endif>
     @if($label)
-        <label for="{{ $name }}" class="form-label">{{ $label }}</label>
+        <label for="{{ $name }}" class="form-label">
+            {{ $label }}
+            @if($required)
+                <span class="text-danger">*</span>
+            @endif
+        </label>
     @endif
 
     <div class="input-group">

@@ -61,9 +61,10 @@
                 </a>
             </li>
             <hr class="">
+            <li class="sidebar-nav-heading mx-4 mb-2 text-xs text-gray-500">Accounts</li>
             <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
+                <a href="{{ route('customers.index') }}" wire:navigate
+                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('customers.index') ? 'active' : '' }}">
                     <x-lucide-users class="w-4 h-4 text-slate-600"/>
                     <span class="ps-2">Customers</span>
                 </a>
