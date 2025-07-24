@@ -1,15 +1,15 @@
-<x-modal id="productModal" title="Create Equipment" size="lg">
-    <x-form id="productForm">
+<x-modal id="rentalModal" title="Create Rental" size="lg">
+    <x-form id="rentalForm">
 
         <x-modal.body class="space-y-3">
             <input type="hidden" name="id" id="id">
 
             <div class="row">
                 <div class="col-lg-6">
-                    <x-select id="category_id" name="category_id" label="Select Category"
-                              placeholder="Select Category">
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    <x-select id="customer_id" name="customer_id" label="Select Customer"
+                              placeholder="Select Customer">
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->company_name }}</option>
                         @endforeach
                     </x-select>
                 </div>

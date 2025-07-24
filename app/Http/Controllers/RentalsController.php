@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Rental;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -11,7 +13,7 @@ class RentalsController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $categories = Category::query();
+            $rentals = Rental::query();
 
             $sortCol = null;
             $sortDir = null;
@@ -27,20 +29,20 @@ class RentalsController extends Controller
             }
 
             if($sortCol) {
-                $categories = $categories->orderBy($sortCol, $sortDir ?? 'asc');
+                $rentals = $rentals->orderBy($sortCol, $sortDir ?? 'asc');
             }
 
 
 
-            $filterCount = $categories->clone()->count();
-            $totalCount = Category::count();
+            $filterCount = $rentals->clone()->count();
+            $totalCount = Rental::count();
 
-            $categories = $categories->skip($request->start ?? 0)
+            $rentals = $rentals->skip($request->start ?? 0)
                 ->take($request->length ?? 10);
 
-            $categories = $categories->get();
+            $rentals = $rentals->get();
 
-            return DataTables::of($categories)
+            return DataTables::of($rentals)
                 ->with([
                     "recordsTotal" => $totalCount,
                     "recordsFiltered" => $filterCount,
@@ -48,39 +50,39 @@ class RentalsController extends Controller
                 ->skipPaging()
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    return view('categories._actions', ['category' => $row])->render();
+                    return view('rentals._actions', ['rental' => $row])->render();
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
-
-        return view('categories.index');
+        $customers = Customer::all();
+        return view('rentals.index',compact('customers'));
     }
 
     public function storeOrUpdate(Request $request)
     {
         $request->validate([
-            'name' => 'required|min:2'
+            'company_name' => 'required|min:2'
         ]);
         if ($request->id) {
-            Category::find($request->id)->update($request->all());
+            Rental::find($request->id)->update($request->all());
         } else {
-            Category::create($request->all());
+            Rental::create($request->all());
         }
 
-        return response()->json(['message' => 'Category Created Successfully!']);
+        return response()->json(['message' => 'Rental Created Successfully!']);
 
     }
 
-    public function edit(Request $request, Category $category)
+    public function edit(Request $request, Rental $rental)
     {
-        return response()->json($category);
+        return response()->json($rental);
     }
 
-    public function destroy(Request $request, Category $category)
+    public function destroy(Request $request, Rental $rental)
     {
-        $category->delete();
+        $rental->delete();
 
-        return response()->json(['message' => 'Category Deleted Successfully!']);
+        return response()->json(['message' => 'Rental Deleted Successfully!']);
     }
 }

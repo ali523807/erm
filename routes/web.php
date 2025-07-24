@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\Products\ProductsController;
 use App\Http\Controllers\Products\ProductStatusToggleController;
+use App\Http\Controllers\RentalsController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,12 @@ Route::group(['middleware' => ['auth:web']], function () {
     Route::post('customers', [CustomersController::class, 'storeOrUpdate'])->name('customers.storeOrUpdate');
     Route::get('customers/{customer}', [CustomersController::class, 'edit'])->name('customers.edit');
     Route::delete('customers/{customer}', [CustomersController::class, 'destroy'])->name('customers.delete');
+
+    //Rentals
+    Route::get('rentals', [RentalsController::class, 'index'])->name('rentals.index');
+    Route::post('rentals', [RentalsController::class, 'storeOrUpdate'])->name('rentals.storeOrUpdate');
+    Route::get('rentals/{rental}', [RentalsController::class, 'edit'])->name('rentals.edit');
+    Route::delete('rentals/{rental}', [RentalsController::class, 'destroy'])->name('rentals.delete');
 
     Route::group(['prefix' => 'settings'], function () {
         Route::get('profile', [ProfileController::class, 'profile'])->name('settings.profile');

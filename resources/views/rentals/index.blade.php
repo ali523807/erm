@@ -1,27 +1,28 @@
 @extends('layouts.app')
 
-@section('title', 'Equipments')
+@section('title', 'Rentals')
 
 @section('content')
 
     <div class="px-3">
         <div class="d-flex align-items-center justify-content-between">
-            <h3>Manage Equipments</h3>
+            <h3>Manage Rentals</h3>
 
-            <x-button data-bs-toggle="#productModal" id="add-product-btn" color="dark">
+            <x-button data-bs-toggle="#rentalForm" id="add-rental-btn" color="dark">
                 <x-lucide-plus class="w-4 h-4"/>
-                <span class="d-none d-sm-inline-block">Add Equipment</span>
+                <span class="d-none d-sm-inline-block">Add Rental</span>
             </x-button>
         </div>
 
         <x-card class="mt-3" body-class="px-0 pt-0 pt-sm-3">
             <div class="table-responsive">
-                <table id="products-table" class="table">
+                <table id="rentals-table" class="table">
                     <thead>
                     <tr>
                         <th>#</th>
-                        <th>Name</th>
-                        <th>Category</th>
+                        <th>Customer</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -33,7 +34,7 @@
             </div>
         </x-card>
 
-     @include('products._form')
+     @include('rentals._form')
 
     </div>
 
@@ -42,47 +43,48 @@
 @push('js')
     <script type="module">
         $(function () {
-            new DataTable('#products-table').destroy();
+            new DataTable('#rentals-table').destroy();
 
-            let table = $('#products-table').DataTable({
+            let table = $('#rentals-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('products.index') }}",
+                ajax: "{{ route('rentals.index') }}",
                 columns: [
                     {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-                    {data: 'name', name: 'name'},
-                    {data: 'category.name', name: 'category'},
+                    {data: 'customer.company_name', name: 'customer.company_name'},
+                    {data: 'rental_start_date', name: 'rental_start_date'},
+                    {data: 'rental_end_date', name: 'rental_end_date'},
                     {data: 'status', name: 'status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
                 buttons: [],
             });
 
-            $('#add-product-btn').click(function () {
+            $('#add-rental-btn').click(function () {
                 $('#id').val('');
-                $('#productForm').trigger("reset");
-                $('#productModal .model-title').html("Create New Equipment");
+                $('#rentalForm').trigger("reset");
+                $('#rentalModal .model-title').html("Create New Rental");
                 $('.form-select').trigger('change');
-                $('#productModal').modal('show');
+                $('#rentalModal').modal('show');
             });
 
-            $('#productForm').on('submit', function (e) {
+            $('#rentalForm').on('submit', function (e) {
                 e.preventDefault();
 
-                var data = new FormData($('#productForm')[0]);
+                var data = new FormData($('#rentalForm')[0]);
 
 
                 $.easyAjax({
-                    url: "{{ route('products.storeOrUpdate') }}",
-                    container: '#productForm',
+                    url: "{{ route('rentals.storeOrUpdate') }}",
+                    container: '#rentalForm',
                     type: "POST",
                     disableButton: true,
                     blockUI: true,
                     data: data,
                     onComplete: () => {
-                        $('#productModal').modal('hide');
-                        $('#modelHeading').html("Create New Product");
-                        $('#productForm')[0].reset();
+                        $('#rentalModal').modal('hide');
+                        $('#modelHeading').html("Create New Rental");
+                        $('#rentalForm')[0].reset();
 
                         table.draw(false);
                     }
@@ -90,15 +92,14 @@
 
             });
 
-            $('body').on('click', '.editProduct', function (e) {
+            $('body').on('click', '.editRental', function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
-                axios.get(route('products.edit', {product: id})).then((response) => {
-                    $('#productForm')[0].reset();
-                    $('#productModal .model-title').html("Edit Product");
-                    $('#productModal').modal('show');
+                axios.get(route('rentals.edit', {rental: id})).then((response) => {
+                    $('#modelHeading').html("Edit Customer");
+                    $('#rentalModal').modal('show');
 
-                    var form = $('#productForm'); // Adjust the form ID as needed
+                    var form = $('#rentalForm'); // Adjust the form ID as needed
 
                     $.each(response.data, function (key, value) {
                         var inputField = form.find('[name="' + key + '"]'); // Scope to form
@@ -109,17 +110,15 @@
                         }
                     });
 
-                    // **Set the attributes array dynamically:**
-                    setAttributesFromAjax(response.data.attributes || []);
                 });
             });
 
-            $('body').on('click', '.deleteProduct', function (e) {
+            $('body').on('click', '.deleteRental', function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 $.easyDelete({
-                    url: route('products.delete', {product: id}),
-                    confirmationMessage: 'Do you really want to delete this product?',
+                    url: route('rentals.delete', {rental: id}),
+                    confirmationMessage: 'Do you really want to delete this rental?',
                     onComplete: () => {
                         table.draw(false);
                     }
@@ -131,7 +130,7 @@
                 var id = $(this).data('id');
                 var status = $(this).data('status');
 
-                axios.post(route('products.toggleStatus', {product: id}), {status}).then((response) => {
+                axios.post(route('rentals.toggleStatus', {rental: id}), {status}).then((response) => {
                     if (status) {
                         $(this).removeClass('text-bg-danger');
                         $(this).addClass('text-bg-success');
@@ -150,73 +149,7 @@
             });
         });
 
-        // Initial attributes from old input or default empty
-        let attributes = @json(old('attributes', [['key' => '', 'value' => '']]));
 
-        function renderAttributes() {
-            const container = $('#attributeRows');
-            container.empty();
-
-            attributes.forEach((attr, index) => {
-                const row = `
-                <div class="row mb-2 align-items-end attribute-row" data-index="${index}">
-                    <div class="col-md-5">
-                        <input type="text"
-                               class="form-control"
-                               name="attributes[${index}][key]"
-                               value="${attr.key}"
-                               placeholder="Attribute Key (e.g. Phase)"
-                               required />
-                    </div>
-                    <div class="col-md-5">
-                        <input type="text"
-                               class="form-control"
-                               name="attributes[${index}][value]"
-                               value="${attr.value}"
-                               placeholder="Attribute Value (e.g. 3-Phase)"
-                               required />
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-attribute" ${attributes.length <= 1 ? 'disabled' : ''}>
-                            <i class="bi bi-x-circle"></i> Remove
-                        </button>
-                    </div>
-                </div>
-            `;
-                container.append(row);
-            });
-        }
-
-        function addAttribute() {
-            attributes.push({ key: '', value: '' });
-            renderAttributes();
-        }
-
-        function removeAttribute(index) {
-            attributes.splice(index, 1);
-            renderAttributes();
-        }
-
-        // On page ready
-        $(document).ready(function () {
-            renderAttributes();
-
-            $('#addAttributeBtn').on('click', function () {
-                addAttribute();
-            });
-
-            // Delegate remove buttons
-            $('#attributeWrapper').on('click', '.remove-attribute', function () {
-                const index = $(this).closest('.attribute-row').data('index');
-                removeAttribute(index);
-            });
-        });
-
-        // To use from JS (e.g. when loading product to edit)
-        function setAttributesFromAjax(newAttributes) {
-            attributes = newAttributes.length > 0 ? newAttributes : [{ key: '', value: '' }];
-            renderAttributes();
-        }
     </script>
 
 @endpush

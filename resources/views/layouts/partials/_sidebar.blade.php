@@ -46,8 +46,8 @@
             </li>
 
             <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
+                <a href="{{ route('rentals.index') }}" wire:navigate
+                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('rentals.index') ? 'active' : '' }}">
                     <x-lucide-file-box class="w-4 h-4 text-slate-600"/>
                     <span class="ps-2">Rentals</span>
                 </a>
