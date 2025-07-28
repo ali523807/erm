@@ -1,4 +1,7 @@
-<x-modal id="productModal" title="Create Equipment" size="lg">
+<x-modal id="productModal" size="lg">
+    <x-slot name="title">
+        <span id="productModalTitle">Create Equipment</span>
+    </x-slot>
     <x-form id="productForm">
 
         <x-modal.body class="space-y-3">

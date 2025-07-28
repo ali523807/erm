@@ -1,4 +1,7 @@
-<x-modal id="categoryModal" title="Create Category">
+<x-modal id="categoryModal">
+    <x-slot name="title">
+        <span id="categoryModalTitle">Create Category</span>
+    </x-slot>
     <x-form id="categoryForm">
         <x-modal.body class="space-y-3">
             <input type="hidden" name="id" />

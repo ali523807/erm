@@ -81,9 +81,8 @@
                     data: data,
                     onComplete: () => {
                         $('#productModal').modal('hide');
-                        $('#modelHeading').html("Create New Product");
+                        $('#productModalTitle').html("Create New Product");
                         $('#productForm')[0].reset();
-
                         table.draw(false);
                     }
                 })
@@ -95,7 +94,7 @@
                 var id = $(this).data('id');
                 axios.get(route('products.edit', {product: id})).then((response) => {
                     $('#productForm')[0].reset();
-                    $('#productModal .model-title').html("Edit Product");
+                    $('#productModalTitle').html("Edit/Update Equipment");
                     $('#productModal').modal('show');
 
                     var form = $('#productForm'); // Adjust the form ID as needed

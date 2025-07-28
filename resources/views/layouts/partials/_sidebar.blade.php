@@ -52,6 +52,13 @@
                     <span class="ps-2">Rentals</span>
                 </a>
             </li>
+            <li class="sidebar-item">
+                <a href="{{ route('rental-items.index') }}" wire:navigate
+                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('rental-items.index') ? 'active' : '' }}">
+                    <x-lucide-file-box class="w-4 h-4 text-slate-600"/>
+                    <span class="ps-2">Rental Items</span>
+                </a>
+            </li>
 
             <li class="sidebar-item">
                 <a href="{{ route('products.index') }}" wire:navigate

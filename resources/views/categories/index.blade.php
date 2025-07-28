@@ -57,7 +57,7 @@
             $('#add-category-btn').click(function () {
                 $('#id').val('');
                 $('#categoryForm').trigger("reset");
-                $('#modelHeading').html("Create New Category");
+                $('#categoryModalTitle').html("Create New Category");
                 $('#categoryModal').modal('show');
             });
 
@@ -76,7 +76,7 @@
                     data: data,
                     onComplete: () => {
                         $('#categoryModal').modal('hide');
-                        $('#modelHeading').html("Create New Category");
+                        $('#categoryModalTitle').html("Create New Category");
                         $('#categoryForm').trigger("reset");
                         table.draw(false);
                     }
@@ -88,7 +88,7 @@
                 e.preventDefault();
                 var id = $(this).data('id');
                 axios.get(route('categories.edit', {category: id})).then((response) => {
-                    $('#modelHeading').html("Edit Category");
+                    $('#categoryModalTitle').html("Edit/Update Category");
                     $('#categoryModal').modal('show');
 
                     var form = $('#categoryForm'); // Adjust the form ID as needed

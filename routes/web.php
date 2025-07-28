@@ -4,7 +4,9 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\Products\ProductsController;
 use App\Http\Controllers\Products\ProductStatusToggleController;
-use App\Http\Controllers\RentalsController;
+use App\Http\Controllers\Rentals\RentalItemsController;
+use App\Http\Controllers\Rentals\RentalItemStatusToggleController;
+use App\Http\Controllers\Rentals\RentalsController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,10 @@ Route::group(['middleware' => ['auth:web']], function () {
     Route::post('rentals', [RentalsController::class, 'storeOrUpdate'])->name('rentals.storeOrUpdate');
     Route::get('rentals/{rental}', [RentalsController::class, 'edit'])->name('rentals.edit');
     Route::delete('rentals/{rental}', [RentalsController::class, 'destroy'])->name('rentals.delete');
+
+    //Rental Items
+    Route::get('rental-items', [RentalItemsController::class, 'index'])->name('rental-items.index');
+    Route::post('rental-items/{item}/toggleStatus', RentalItemStatusToggleController::class)->name('rental-items.toggleStatus');
 
     Route::group(['prefix' => 'settings'], function () {
         Route::get('profile', [ProfileController::class, 'profile'])->name('settings.profile');

@@ -10,6 +10,7 @@
         'sm' => 'modal-sm',
         'md' => '',
         'lg' => 'modal-lg',
+        'xl' => 'modal-xl'
     ];
     $modalSizeClass = $sizes[$size] ?? '';
 @endphp
