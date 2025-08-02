@@ -289,3 +289,111 @@ html[data-bs-theme="light"] .theme-toggle .bi-sun {
     scrollbar-width: thin;
     scrollbar-color: #bbb #f1f1f1;
 }
+
+/*Soft Badge Color*/
+.badge-soft-secondary {
+    background-color: #f2f2f2;
+    color: #6c757d;
+}
+
+.badge-soft-primary {
+    background-color: #e6f0ff;
+    color: #0d6efd;
+}
+
+.badge-soft-info {
+    background-color: #e7f5ff;
+    color: #0dcaf0;
+}
+
+.badge-soft-success {
+    background-color: #e9f7ef;
+    color: #198754;
+}
+
+.badge-soft-danger {
+    background-color: #fcebea;
+    color: #dc3545;
+}
+
+.badge-soft-warning {
+    background-color: #fff9e6;
+    color: #ffc107;
+}
+
+.badge-soft-dark {
+    background-color: #e5e5e5;
+    color: #212529;
+}
+
+/*Soft Buttons*/
+.btn-soft-secondary {
+    background-color: #f2f2f2;
+    color: #6c757d;
+}
+
+.btn-soft-secondary:hover {
+    background-color: #e0e0e0;
+    color: #545b62;
+}
+
+.btn-soft-primary {
+    background-color: #e6f0ff;
+    color: #0d6efd;
+}
+
+.btn-soft-primary:hover {
+    background-color: #d0e2ff;
+    color: #084298;
+}
+
+.btn-soft-info {
+    background-color: #e7f5ff;
+    color: #0dcaf0;
+}
+
+.btn-soft-info:hover {
+    background-color: #cceeff;
+    color: #0aa2c0;
+}
+
+.btn-soft-success {
+    background-color: #e9f7ef;
+    color: #198754;
+}
+
+.btn-soft-success:hover {
+    background-color: #d4f1e1;
+    color: #146c43;
+}
+
+.btn-soft-danger {
+    background-color: #fcebea;
+    color: #dc3545;
+}
+
+.btn-soft-danger:hover {
+    background-color: #f8d7da;
+    color: #a71d2a;
+}
+
+.btn-soft-warning {
+    background-color: #fff9e6;
+    color: #ffc107;
+}
+
+.btn-soft-warning:hover {
+    background-color: #fff3cd;
+    color: #cc9a06;
+}
+
+.btn-soft-dark {
+    background-color: #e5e5e5;
+    color: #212529;
+}
+
+.btn-soft-dark:hover {
+    background-color: #d6d6d6;
+    color: #16181b;
+}
+

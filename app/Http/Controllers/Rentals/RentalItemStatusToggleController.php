@@ -11,9 +11,12 @@ class RentalItemStatusToggleController extends Controller
 {
     public function __invoke(Request $request, RentalItem $item)
     {
-        $item->update(['active' => $request->status]);
+        $request->validate([
+            'newStatus' => 'required|string|in:Pending,Dispatched,On Rent,Returned,Damaged,Missing,Under Maintenance',
+        ]);
+        $item->update(['status' => $request->newStatus]);
 
-        return response()->json(['message' => 'Status updated']);
+        return response()->json(['message' => 'Status updated successfully!']);
     }
 
 }

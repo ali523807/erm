@@ -49,7 +49,7 @@ class RentalItemsController extends Controller
                 ->skipPaging()
                 ->addIndexColumn()
                 ->addColumn('rental_id', function ($row) {
-                    return 'RTN-'.$row->id;
+                    return 'RTN-'.$row->rental_id;
                 })
                 ->addColumn('customer', function ($row) {
                     return $row->rental->customer->company_name;

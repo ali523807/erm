@@ -58,24 +58,26 @@
 
             $('body').on('click', '.toggleStatus', function (e) {
                 e.preventDefault();
-                var id = $(this).data('id');
-                var status = $(this).data('status');
+                const $option = $(this);
+                const id = $option.data('id');
+                const newStatus = $option.data('status');
+                const badgeClass = $option.data('class');
+                axios.post(route('rental-items.toggleStatus', {item: id}), {newStatus}).then((response) => {
+                    const $button = $('#statusDropdown' + id);
+                    $button.text(newStatus);
+                    $button.removeClass(function (index, className) {
+                            return (className.match(/text-bg-\S+/g) || []).join(' ');
+                        })
+                        .addClass(badgeClass)
+                        .data('status', newStatus);
 
-                axios.post(route('rental-items.toggleStatus', {item: id}), {status}).then((response) => {
-                    if (status) {
-                        $(this).removeClass('text-bg-danger');
-                        $(this).addClass('text-bg-success');
-                        $(this).html('Active');
-                    } else {
-                        $(this).removeClass('text-bg-success');
-                        $(this).addClass('text-bg-danger');
-                        $(this).html('In Active');
-                    }
-                    $(this).data('status', !status);
-
-                    toastr.success(response.data.message);
-                });
+                            toastr.success("Status updated!");
+                        })
+                    .catch((error) => {
+                        toastr.error("Failed to update status.");
+                    });
             });
+
         });
 
 
