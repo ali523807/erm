@@ -1,7 +1,8 @@
 <?php
 
-it('returns a successful response', function () {
+it('renders the public landing page', function () {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertOk();
+    $response->assertSee('Equipment Rental Management');
 });

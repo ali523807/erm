@@ -1,132 +1,149 @@
-<aside id="sidebar" class="js-sidebar ">
-    <!-- Content For Sidebar -->
-    <div class="h-100">
-        <div class="sidebar-logo text-truncate p-2 my-2 mx-3 ms-3">
-            <a href="#" class="text-sm d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center overflow-hidden rounded w-8 h-8 bg-black">
-                    <x-lucide-building class="w-5 h-5 text-white"/>
-                </div>
-                <span class="text-truncate">ERM</span>
+<aside id="sidebar" class="js-sidebar">
+    <div class="h-100 d-flex flex-column">
+        <div class="sidebar-logo">
+            <a href="{{ route('home') }}" class="brand-lockup">
+                <span class="brand-mark">
+                    <x-lucide-building-2 class="w-5 h-5"/>
+                </span>
+                <span>
+                    <strong>ERM Cloud</strong>
+                    <small>{{ auth()->user()->currentCompany?->name ?? 'Workspace' }}</small>
+                </span>
             </a>
         </div>
 
-        <ul class="sidebar-nav">
-            <li class="sidebar-nav-heading mx-4 mb-2 text-xs text-gray-500">Platform</li>
+        <ul class="sidebar-nav flex-fill">
+            <li class="sidebar-nav-heading">Overview</li>
 
             <li class="sidebar-item">
                 <a href="{{ route('home') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('home') ? 'active' : '' }}">
-                    <x-lucide-house class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Dashboard</span>
+                   class="sidebar-link {{ request()->routeIs('home') ? 'active' : '' }}">
+                    <x-lucide-layout-dashboard class="w-4 h-4"/>
+                    <span>Dashboard</span>
                 </a>
             </li>
 
-            <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-bell class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Notifications</span>
-                </a>
-            </li>
+            <li class="sidebar-nav-heading">Rental Desk</li>
 
             <li class="sidebar-item">
-                <a href="{{ route('categories.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('categories.index') ? 'active' : '' }}">
-                    <x-lucide-layout-grid class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Categories</span>
-                </a>
-            </li>
-
-            <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-package-search class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Equipments</span>
+                <a href="{{ route('quotes.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('quotes.*') ? 'active' : '' }}">
+                    <x-lucide-file-signature class="w-4 h-4"/>
+                    <span>Quotes</span>
                 </a>
             </li>
 
             <li class="sidebar-item">
                 <a href="{{ route('rentals.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('rentals.index') ? 'active' : '' }}">
-                    <x-lucide-file-box class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Rentals</span>
+                   class="sidebar-link {{ request()->routeIs('rentals.*') || request()->routeIs('agreements.*') ? 'active' : '' }}">
+                    <x-lucide-file-box class="w-4 h-4"/>
+                    <span>Rentals</span>
                 </a>
             </li>
+
             <li class="sidebar-item">
-                <a href="{{ route('rental-items.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('rental-items.index') ? 'active' : '' }}">
-                    <x-lucide-file-box class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Rental Items</span>
+                <a href="{{ route('availability.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('availability.*') ? 'active' : '' }}">
+                    <x-lucide-calendar-check class="w-4 h-4"/>
+                    <span>Availability</span>
+                </a>
+            </li>
+
+            <li class="sidebar-nav-heading">Fleet</li>
+
+            <li class="sidebar-item">
+                <a href="{{ route('categories.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                    <x-lucide-layout-grid class="w-4 h-4"/>
+                    <span>Categories</span>
                 </a>
             </li>
 
             <li class="sidebar-item">
                 <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-wrench class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Maintenance Logs</span>
+                   class="sidebar-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                    <x-lucide-package-search class="w-4 h-4"/>
+                    <span>Equipment</span>
                 </a>
             </li>
-            <hr class="">
-            <li class="sidebar-nav-heading mx-4 mb-2 text-xs text-gray-500">Accounts</li>
+
+            <li class="sidebar-item">
+                <a href="{{ route('maintenance.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}">
+                    <x-lucide-wrench class="w-4 h-4"/>
+                    <span>Maintenance</span>
+                </a>
+            </li>
+
+            <li class="sidebar-nav-heading">Customers</li>
+
             <li class="sidebar-item">
                 <a href="{{ route('customers.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('customers.index') ? 'active' : '' }}">
-                    <x-lucide-users class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Customers</span>
+                   class="sidebar-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                    <x-lucide-users class="w-4 h-4"/>
+                    <span>Customers</span>
+                </a>
+            </li>
+
+            <li class="sidebar-nav-heading">Finance</li>
+
+            <li class="sidebar-item">
+                <a href="{{ route('invoices.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
+                    <x-lucide-file-text class="w-4 h-4"/>
+                    <span>Invoices</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ route('payments.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+                    <x-lucide-credit-card class="w-4 h-4"/>
+                    <span>Payments</span>
+                </a>
+            </li>
+
+            <li class="sidebar-nav-heading">Insights</li>
+
+            <li class="sidebar-item">
+                <a href="{{ route('reports.index') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                    <x-lucide-bar-chart-3 class="w-4 h-4"/>
+                    <span>Reports</span>
+                </a>
+            </li>
+
+            <li class="sidebar-nav-heading">Administration</li>
+
+            <li class="sidebar-item">
+                <a href="{{ route('settings.company') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('settings.company') ? 'active' : '' }}">
+                    <x-lucide-settings class="w-4 h-4"/>
+                    <span>Company Setup</span>
                 </a>
             </li>
 
             <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-file-text class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Invoices</span>
+                <a href="{{ route('settings.locations') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('settings.locations') ? 'active' : '' }}">
+                    <x-lucide-warehouse class="w-4 h-4"/>
+                    <span>Locations</span>
                 </a>
             </li>
 
             <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-credit-card class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Payments</span>
+                <a href="{{ route('settings.profile') }}" wire:navigate
+                   class="sidebar-link {{ request()->routeIs('settings.profile*') ? 'active' : '' }}">
+                    <x-lucide-user-cog class="w-4 h-4"/>
+                    <span>My Profile</span>
                 </a>
             </li>
-
-            <li class="sidebar-item">
-                <a href="{{ route('products.index') }}" wire:navigate
-                   class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('products.index') ? 'active' : '' }}">
-                    <x-lucide-bar-chart class="w-4 h-4 text-slate-600"/>
-                    <span class="ps-2">Reports</span>
-                </a>
-            </li>
-
-
-
-
-
-
         </ul>
+
+        <div class="sidebar-footer">
+            <span class="status-dot"></span>
+            <span>Tenant scoped workspace</span>
+        </div>
     </div>
 </aside>
 
-<!-- Sidebar Backdrop -->
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-
-<!-- Sidebar Dropdown Item Snippet -->
-{{--            <li class="sidebar-item">--}}
-{{--                <a href="#" class="sidebar-link collapsed" data-bs-target="#posts" data-bs-toggle="collapse"--}}
-{{--                   aria-expanded="false"><i class="bi bi-receipt pe-2"></i>--}}
-{{--                   Sales--}}
-{{--                </a>--}}
-{{--                <ul id="posts" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">--}}
-{{--                    <li class="sidebar-item">--}}
-{{--                        <a href="#" wire:navigate class="sidebar-link">All Sales</a>--}}
-{{--                    </li>--}}
-{{--                    <li class="sidebar-item">--}}
-{{--                        <a href="#" class="sidebar-link" wire:navigate>Add Sale</a>--}}
-{{--                    </li>--}}
-
-{{--                </ul>--}}
-{{--            </li>--}}

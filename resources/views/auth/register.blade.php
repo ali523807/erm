@@ -10,8 +10,25 @@
 
     <div class="">
         <x-form class="space-y-4" method="POST" action="{{ route('register') }}">
+            <input type="hidden" name="plan" value="{{ old('plan', $selectedPlan?->slug) }}">
+
+            @if($selectedPlan)
+                <div class="selected-plan-card">
+                    <div>
+                        <span class="eyebrow">Selected Plan</span>
+                        <strong>{{ $selectedPlan->name }}</strong>
+                        <p>{{ $selectedPlan->description }}</p>
+                    </div>
+                    <div class="selected-plan-price">
+                        <strong>${{ number_format($selectedPlan->monthly_price, 0) }}</strong>
+                        <span>/ month</span>
+                    </div>
+                </div>
+            @endif
 
             <x-input placeholder="Full name" label="Name" name="name" id="name"/>
+
+            <x-input placeholder="Your rental company" label="Company Name" name="company_name" id="company_name"/>
 
             <x-input placeholder="email@example.com" type="email" label="E-mail Address" name="email" id="email"/>
 
@@ -27,6 +44,13 @@
             <div class="text-center text-sm text-muted mt-4 authentication"> Already have an account?
                 <a wire:navigate class="text-decoration-underline text-gray-800" href="{{ route('login') }}">
                     Log in
+                </a>
+            </div>
+
+            <div class="text-center text-sm text-muted authentication">
+                Want another plan?
+                <a wire:navigate class="text-decoration-underline text-gray-800" href="{{ route('landing') }}#pricing">
+                    View pricing
                 </a>
             </div>
 

@@ -1,0 +1,245 @@
+@extends('layouts.app')
+
+@section('title', 'Reports')
+
+@section('content')
+    <div class="px-3">
+        <div class="page-header">
+            <div>
+                <span class="eyebrow">Analytics</span>
+                <h1>Reports</h1>
+                <p>Review rental revenue, collections, utilization, customer performance, damage, and maintenance costs.</p>
+            </div>
+        </div>
+
+        <section class="panel mb-3">
+            <form method="GET" action="{{ route('reports.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input id="start_date" name="start_date" type="date" class="form-control" value="{{ $startDate->toDateString() }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input id="end_date" name="end_date" type="date" class="form-control" value="{{ $endDate->toDateString() }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-dark">Apply Filter</button>
+                    <a href="{{ route('reports.index') }}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </section>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <section class="panel h-100">
+                    <span class="eyebrow">Invoiced</span>
+                    <h2 class="mb-0">{{ number_format($summary['invoiced'], 2) }}</h2>
+                    <p class="text-muted mb-0">Within selected range</p>
+                </section>
+            </div>
+            <div class="col-md-3">
+                <section class="panel h-100">
+                    <span class="eyebrow">Collected</span>
+                    <h2 class="mb-0">{{ number_format($summary['collected'], 2) }}</h2>
+                    <p class="text-muted mb-0">Payments received</p>
+                </section>
+            </div>
+            <div class="col-md-3">
+                <section class="panel h-100">
+                    <span class="eyebrow">Outstanding</span>
+                    <h2 class="mb-0">{{ number_format($summary['outstanding'], 2) }}</h2>
+                    <p class="text-muted mb-0">Open balance all time</p>
+                </section>
+            </div>
+            <div class="col-md-3">
+                <section class="panel h-100">
+                    <span class="eyebrow">Active Rentals</span>
+                    <h2 class="mb-0">{{ $summary['activeRentals'] }}</h2>
+                    <p class="text-muted mb-0">{{ $summary['overdueInvoices'] }} overdue invoices</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <section class="panel h-100">
+                    <div class="panel-header align-items-start">
+                        <div>
+                            <h2>Monthly Revenue</h2>
+                            <p>Invoice totals grouped by month in the selected range.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Revenue</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($monthlyRevenue as $row)
+                                <tr>
+                                    <td>{{ $row['month'] }}</td>
+                                    <td>{{ number_format($row['amount'], 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="2" class="text-center text-muted py-4">No invoice revenue in this range.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-md-6">
+                <section class="panel h-100">
+                    <div class="panel-header align-items-start">
+                        <div>
+                            <h2>Rental Status</h2>
+                            <p>Rental jobs started within the selected range.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($rentalStatus as $status => $count)
+                                <tr>
+                                    <td>{{ str($status)->headline() }}</td>
+                                    <td>{{ $count }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="2" class="text-center text-muted py-4">No rentals in this range.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-xl-6">
+                <section class="panel h-100">
+                    <div class="panel-header align-items-start">
+                        <div>
+                            <h2>Top Customers</h2>
+                            <p>Customers ranked by invoiced amount.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Invoiced</th>
+                                <th>Balance</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($topCustomers as $row)
+                                <tr>
+                                    <td>{{ $row['customer'] }}</td>
+                                    <td>{{ number_format($row['invoiced'], 2) }}</td>
+                                    <td>{{ number_format($row['balance'], 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="3" class="text-center text-muted py-4">No customer invoice data in this range.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-xl-6">
+                <section class="panel h-100">
+                    <div class="panel-header align-items-start">
+                        <div>
+                            <h2>Equipment Utilization</h2>
+                            <p>Equipment usage ranked by rental line revenue.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Rentals</th>
+                                <th>Days</th>
+                                <th>Revenue</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($equipmentUtilization as $row)
+                                <tr>
+                                    <td>{{ $row['equipment'] }}</td>
+                                    <td>{{ $row['rentals'] }}</td>
+                                    <td>{{ number_format($row['days'], 2) }}</td>
+                                    <td>{{ number_format($row['revenue'], 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="text-center text-muted py-4">No equipment usage in this range.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <section class="panel h-100">
+                    <span class="eyebrow">Damage Charges</span>
+                    <h2 class="mb-0">{{ number_format($summary['damage'], 2) }}</h2>
+                    <p class="text-muted mb-0">Invoice damage charges in range</p>
+                </section>
+            </div>
+            <div class="col-md-8">
+                <section class="panel h-100">
+                    <div class="panel-header align-items-start">
+                        <div>
+                            <h2>Maintenance Cost</h2>
+                            <p>Maintenance events grouped by equipment.</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="eyebrow">Total Cost</span>
+                            <h2 class="mb-0">{{ number_format($summary['maintenanceCost'], 2) }}</h2>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Events</th>
+                                <th>Cost</th>
+                                <th>Downtime</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($maintenanceSummary as $row)
+                                <tr>
+                                    <td>{{ $row['equipment'] }}</td>
+                                    <td>{{ $row['count'] }}</td>
+                                    <td>{{ number_format($row['cost'], 2) }}</td>
+                                    <td>{{ number_format($row['downtime'], 2) }} hrs</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="text-center text-muted py-4">No maintenance events in this range.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+@endsection

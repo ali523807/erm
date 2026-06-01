@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -17,24 +16,22 @@ class CustomersController extends Controller
             $sortCol = null;
             $sortDir = null;
 
-            if($request->has('order') && $request->get('order')) {
+            if ($request->has('order') && $request->get('order')) {
                 $sortCol = $request->get('order')[0]['name'];
                 $sortDir = $request->get('order')[0]['dir'];
 
-                if($sortCol == 'DT_RowIndex') {
+                if ($sortCol == 'DT_RowIndex') {
                     $sortCol = null;
                     $sortDir = null;
                 }
             }
 
-            if($sortCol) {
+            if ($sortCol) {
                 $customers = $customers->orderBy($sortCol, $sortDir ?? 'asc');
             }
 
-
-
             $filterCount = $customers->clone()->count();
-            $totalCount = Category::count();
+            $totalCount = Customer::count();
 
             $customers = $customers->skip($request->start ?? 0)
                 ->take($request->length ?? 10);
@@ -43,8 +40,8 @@ class CustomersController extends Controller
 
             return DataTables::of($customers)
                 ->with([
-                    "recordsTotal" => $totalCount,
-                    "recordsFiltered" => $filterCount,
+                    'recordsTotal' => $totalCount,
+                    'recordsFiltered' => $filterCount,
                 ])
                 ->skipPaging()
                 ->addIndexColumn()
@@ -61,7 +58,7 @@ class CustomersController extends Controller
     public function storeOrUpdate(Request $request)
     {
         $request->validate([
-            'company_name' => 'required|min:2'
+            'company_name' => 'required|min:2',
         ]);
         if ($request->id) {
             Customer::find($request->id)->update($request->all());
