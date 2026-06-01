@@ -16,14 +16,15 @@
         </span>
         <span>
             <strong>ERM Cloud</strong>
-            <small>Rental operations SaaS</small>
+            <small>Equipment rental SaaS</small>
         </span>
     </a>
 
     <nav>
+        <a href="#software">Software</a>
+        <a href="#workflows">Workflows</a>
         <a href="#pricing">Pricing</a>
         <a href="{{ route('login') }}">Login</a>
-        <a href="{{ route('platform.login') }}">Platform Login</a>
         <a href="{{ route('register') }}" class="btn btn-dark">Start Free Trial</a>
     </nav>
 </header>
@@ -33,42 +34,138 @@
         <img src="{{ asset('images/landing-equipment-yard.jpg') }}" alt="Construction equipment yard">
         <div class="landing-hero-overlay"></div>
         <div class="landing-hero-content">
-            <span class="eyebrow">Equipment Rental Management</span>
-            <h1>Run every rental, return, customer, and invoice from one cloud workspace.</h1>
-            <p>ERM Cloud gives equipment rental companies a SaaS-ready system for fleet availability, contracts, billing, maintenance, and branch operations.</p>
+            <span class="eyebrow">Global Equipment Rental Platform</span>
+            <h1>ERM Cloud</h1>
+            <p>Modern SaaS software for rental companies that need to control fleet availability, quotes, rentals, contracts, invoices, payments, maintenance, and client subscriptions from one clean workspace.</p>
             <div class="landing-actions">
                 <a href="{{ route('register') }}" class="btn btn-light btn-lg">
-                    <x-lucide-rocket class="w-4 h-4 me-1"/>
+                    <x-lucide-rocket class="w-4 h-4"/>
                     Register Company
                 </a>
                 <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg">
-                    <x-lucide-log-in class="w-4 h-4 me-1"/>
+                    <x-lucide-log-in class="w-4 h-4"/>
                     Client Login
                 </a>
             </div>
         </div>
     </section>
 
+    <section class="landing-software-band" id="software">
+        <div class="landing-section-heading">
+            <span class="eyebrow">Software Glimpse</span>
+            <h2>A focused operating system for rental teams.</h2>
+            <p>Every screen is designed around daily rental work: know what is available, what is on rent, what needs billing, and what needs attention.</p>
+        </div>
+
+        <div class="software-preview-grid">
+            <article class="software-preview is-large">
+                <div class="software-window">
+                    <div class="software-window-top">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="software-dashboard-mock">
+                        <aside>
+                            <strong>ERM Cloud</strong>
+                            <span class="active">Dashboard</span>
+                            <span>Rentals</span>
+                            <span>Fleet</span>
+                            <span>Invoices</span>
+                            <span>Reports</span>
+                        </aside>
+                        <section>
+                            <div class="mock-header">
+                                <div>
+                                    <small>Operations Dashboard</small>
+                                    <strong>Global Demo Rentals</strong>
+                                </div>
+                                <button>New Rental</button>
+                            </div>
+                            <div class="mock-metrics">
+                                <div><span>Invoiced</span><strong>$18.4k</strong></div>
+                                <div><span>Active Rentals</span><strong>12</strong></div>
+                                <div><span>Available</span><strong>84</strong></div>
+                            </div>
+                            <div class="mock-table">
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <h3>Live business dashboard</h3>
+                <p>Track revenue, collections, active rentals, due returns, fleet utilization, and maintenance alerts from the first screen.</p>
+            </article>
+
+            <article class="software-preview">
+                <x-lucide-file-signature class="w-7 h-7"/>
+                <h3>Quote to rental</h3>
+                <p>Create quotes, reserve equipment, and convert accepted work into rental jobs without re-entering the same data.</p>
+            </article>
+
+            <article class="software-preview">
+                <x-lucide-receipt class="w-7 h-7"/>
+                <h3>Invoice and receipts</h3>
+                <p>Generate invoices, record payments, download PDFs, print receipts, and keep balances visible.</p>
+            </article>
+
+            <article class="software-preview">
+                <x-lucide-wrench class="w-7 h-7"/>
+                <h3>Fleet maintenance</h3>
+                <p>Plan inspections, log repairs, track downtime, and keep unavailable equipment out of rental flow.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="landing-band landing-primary-band" id="workflows">
+        <div class="landing-section-heading">
+            <span class="eyebrow">Built For The Full Rental Lifecycle</span>
+            <h2>From company registration to signed return.</h2>
+        </div>
+        <div class="workflow-grid">
+            <article>
+                <span>01</span>
+                <strong>Company Onboarding</strong>
+                <p>Register a rental company under a SaaS plan and keep tenant data separated by company.</p>
+            </article>
+            <article>
+                <span>02</span>
+                <strong>Fleet Setup</strong>
+                <p>Create categories, flexible equipment records, custom attributes, documents, locations, and availability.</p>
+            </article>
+            <article>
+                <span>03</span>
+                <strong>Rental Operations</strong>
+                <p>Build quotes, create rentals, generate agreements, check out equipment, and capture return sign-off.</p>
+            </article>
+            <article>
+                <span>04</span>
+                <strong>Billing Control</strong>
+                <p>Generate invoices, record payments, download PDFs, track outstanding balances, and review reports.</p>
+            </article>
+        </div>
+    </section>
+
     <section class="landing-band">
         <div class="landing-section-heading">
-            <span class="eyebrow">Built For Rental Teams</span>
-            <h2>Core workflows ready for the SaaS journey.</h2>
+            <span class="eyebrow">Why Teams Use It</span>
+            <h2>Designed for equipment rental companies, not generic inventory.</h2>
         </div>
         <div class="feature-grid">
             <article>
                 <x-lucide-package-search class="w-6 h-6"/>
-                <strong>Equipment Control</strong>
-                <p>Track equipment, status, categories, serial numbers, and yard availability.</p>
+                <strong>Any equipment type</strong>
+                <p>Support generators, vehicles, tools, cameras, event gear, heavy machinery, and custom category attributes.</p>
             </article>
             <article>
-                <x-lucide-file-signature class="w-6 h-6"/>
-                <strong>Rental Contracts</strong>
-                <p>Create rentals with customers, dates, delivery locations, deposits, and line items.</p>
+                <x-lucide-calendar-check class="w-6 h-6"/>
+                <strong>Availability awareness</strong>
+                <p>Check rental and maintenance conflicts before committing equipment to a customer.</p>
             </article>
             <article>
                 <x-lucide-monitor-cog class="w-6 h-6"/>
-                <strong>Platform Admin</strong>
-                <p>Manage registered companies, plans, subscription status, and billing visibility.</p>
+                <strong>Platform owner panel</strong>
+                <p>Separate SaaS owner login for registered companies, subscriptions, billing status, and active clients.</p>
             </article>
         </div>
     </section>
@@ -76,7 +173,7 @@
     <section class="landing-band pricing-band" id="pricing">
         <div class="landing-section-heading">
             <span class="eyebrow">Subscription Plans</span>
-            <h2>Choose the plan that fits your rental operation.</h2>
+            <h2>Choose a SaaS plan and start your rental workspace.</h2>
         </div>
 
         <div class="pricing-grid">

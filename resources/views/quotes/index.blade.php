@@ -45,11 +45,19 @@
                             <td>{{ $quote->rental_start_date?->format('Y-m-d') }} - {{ $quote->rental_end_date?->format('Y-m-d') }}</td>
                             <td><span class="badge badge-soft-secondary">{{ $statuses[$quote->status] ?? str($quote->status)->headline() }}</span></td>
                             <td>{{ number_format((float) $quote->total_amount, 2) }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('quotes.show', $quote) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                            <td>
+                                <div class="table-actions justify-content-end">
+                                <a href="{{ route('quotes.show', $quote) }}" class="btn btn-sm btn-outline-secondary">
+                                    <x-lucide-eye class="w-4 h-4"/>
+                                    View
+                                </a>
                                 @if($quote->status !== 'converted')
-                                    <a href="{{ route('quotes.edit', $quote) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <a href="{{ route('quotes.edit', $quote) }}" class="btn btn-sm btn-primary">
+                                        <x-lucide-pencil class="w-4 h-4"/>
+                                        Edit
+                                    </a>
                                 @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

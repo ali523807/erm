@@ -81,8 +81,13 @@
                             <td><span class="badge badge-soft-secondary">{{ str($invoice->status)->headline() }}</span></td>
                             <td>{{ number_format((float) $invoice->total_amount, 2) }}</td>
                             <td>{{ number_format((float) $invoice->balance_due, 2) }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('invoices.show', $invoice) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                            <td>
+                                <div class="table-actions justify-content-end">
+                                    <a href="{{ route('invoices.show', $invoice) }}" class="btn btn-sm btn-outline-secondary">
+                                        <x-lucide-eye class="w-4 h-4"/>
+                                        View
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty

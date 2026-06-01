@@ -25,7 +25,8 @@
                 <h6 class="alert-heading text-red-600 mb-1">Warning</h6>
                 <p class="text-red-600">Please proceed with caution, this cannot be undone.</p>
                 <a href="#" data-bs-toggle="#deleteUserModal" id="delete-user-btn"
-                   class="btn bg-red-500 text-white">
+                   class="btn btn-danger">
+                    <x-lucide-trash-2 class="w-4 h-4"/>
                     Delete Account
                 </a>
 

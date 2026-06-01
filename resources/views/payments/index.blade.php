@@ -84,12 +84,23 @@
                             <td><span class="badge badge-soft-secondary">{{ str($payment->method)->headline() }}</span></td>
                             <td>{{ $payment->reference ?: '-' }}</td>
                             <td>{{ number_format((float) $payment->amount, 2) }}</td>
-                            <td class="text-end">
+                            <td>
+                                <div class="table-actions justify-content-end">
                                 @if($payment->invoice)
-                                    <a href="{{ route('invoices.show', $payment->invoice) }}" class="btn btn-sm btn-outline-secondary">Invoice</a>
+                                    <a href="{{ route('invoices.show', $payment->invoice) }}" class="btn btn-sm btn-outline-secondary">
+                                        <x-lucide-file-text class="w-4 h-4"/>
+                                        Invoice
+                                    </a>
                                 @endif
-                                <a href="{{ route('payments.receipt.print', $payment) }}" class="btn btn-sm btn-outline-secondary" target="_blank">Print</a>
-                                <a href="{{ route('payments.receipt.download', $payment) }}" class="btn btn-sm btn-primary">PDF</a>
+                                <a href="{{ route('payments.receipt.print', $payment) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                    <x-lucide-printer class="w-4 h-4"/>
+                                    Print
+                                </a>
+                                <a href="{{ route('payments.receipt.download', $payment) }}" class="btn btn-sm btn-primary">
+                                    <x-lucide-file-down class="w-4 h-4"/>
+                                    PDF
+                                </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
