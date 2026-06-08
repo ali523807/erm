@@ -239,13 +239,13 @@
             <div class="panel">
                 <div class="panel-header align-items-start">
                     <div>
-                        <h2>Rental Defaults</h2>
-                        <p>Set the default charging style for quick quotes. You can still override pricing inside rentals later.</p>
+                        <h2>Rate Card</h2>
+                        <p>Set standard rental prices for this asset. Weekly and monthly rates can be discounted instead of calculated automatically.</p>
                     </div>
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-lg-4">
+                    <div class="col-lg-3">
                         <label for="default_rate_type" class="form-label">Default Rate Type</label>
                         <select id="default_rate_type" name="default_rate_type" class="form-select @error('default_rate_type') is-invalid @enderror">
                             <option value="">No default rate</option>
@@ -257,11 +257,46 @@
                         @error('default_rate_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="col-lg-4">
-                        <label for="default_rate" class="form-label">Default Rate</label>
-                        <input id="default_rate" name="default_rate" type="number" step="0.01" min="0" class="form-control @error('default_rate') is-invalid @enderror" value="{{ $fieldValue('default_rate', 0) }}">
-                        <div class="form-text">Base amount before discounts, taxes, delivery, operator charges, or add-ons.</div>
-                        @error('default_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="col-lg-3">
+                        <label for="hourly_rate" class="form-label">Hourly Rate</label>
+                        <input id="hourly_rate" name="hourly_rate" type="number" step="0.01" min="0" class="form-control @error('hourly_rate') is-invalid @enderror" value="{{ $fieldValue('hourly_rate', 0) }}">
+                        <div class="form-text">Useful for short rentals and small tools.</div>
+                        @error('hourly_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="daily_rate" class="form-label">Daily Rate</label>
+                        <input id="daily_rate" name="daily_rate" type="number" step="0.01" min="0" class="form-control @error('daily_rate') is-invalid @enderror" value="{{ $fieldValue('daily_rate', $fieldValue('default_rate', 0)) }}">
+                        <div class="form-text">Most common base rate for equipment rentals.</div>
+                        @error('daily_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="weekly_rate" class="form-label">Weekly Rate</label>
+                        <input id="weekly_rate" name="weekly_rate" type="number" step="0.01" min="0" class="form-control @error('weekly_rate') is-invalid @enderror" value="{{ $fieldValue('weekly_rate', 0) }}">
+                        <div class="form-text">Set manually for discounted weekly rentals.</div>
+                        @error('weekly_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="monthly_rate" class="form-label">Monthly Rate</label>
+                        <input id="monthly_rate" name="monthly_rate" type="number" step="0.01" min="0" class="form-control @error('monthly_rate') is-invalid @enderror" value="{{ $fieldValue('monthly_rate', 0) }}">
+                        <div class="form-text">Set manually for long-term rentals.</div>
+                        @error('monthly_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="custom_rate" class="form-label">Custom Rate</label>
+                        <input id="custom_rate" name="custom_rate" type="number" step="0.01" min="0" class="form-control @error('custom_rate') is-invalid @enderror" value="{{ $fieldValue('custom_rate', 0) }}">
+                        <div class="form-text">Optional project or negotiated base rate.</div>
+                        @error('custom_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label for="default_deposit_amount" class="form-label">Default Deposit</label>
+                        <input id="default_deposit_amount" name="default_deposit_amount" type="number" step="0.01" min="0" class="form-control @error('default_deposit_amount') is-invalid @enderror" value="{{ $fieldValue('default_deposit_amount', 0) }}">
+                        <div class="form-text">Suggested security deposit for quotes and rentals.</div>
+                        @error('default_deposit_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>

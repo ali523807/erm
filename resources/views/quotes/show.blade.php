@@ -50,7 +50,7 @@
                             <tr>
                                 <th>Equipment</th>
                                 <th>Period</th>
-                                <th>Qty</th>
+                                <th>Duration</th>
                                 <th>Rate</th>
                                 <th>Total</th>
                             </tr>
@@ -63,7 +63,7 @@
                                         <div class="text-muted text-xs">{{ $item->notes ?: $item->product?->equipment_code }}</div>
                                     </td>
                                     <td>{{ $item->start_date?->format('Y-m-d') }} - {{ $item->end_date?->format('Y-m-d') }}</td>
-                                    <td>{{ number_format((float) $item->quantity, 2) }} x {{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
+                                    <td>1 asset x {{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
                                     <td>{{ number_format((float) $item->rate, 2) }}</td>
                                     <td>{{ number_format((float) $item->line_total, 2) }}</td>
                                 </tr>

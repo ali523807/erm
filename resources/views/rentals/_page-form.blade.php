@@ -15,6 +15,14 @@
         'code' => $product->equipment_code,
         'rate' => $product->default_rate,
         'rateType' => $product->default_rate_type,
+        'deposit' => $product->default_deposit_amount,
+        'rates' => [
+            'hourly' => $product->hourly_rate,
+            'daily' => $product->daily_rate,
+            'weekly' => $product->weekly_rate,
+            'monthly' => $product->monthly_rate,
+            'custom' => $product->custom_rate,
+        ],
     ])->values();
 @endphp
 
@@ -141,7 +149,8 @@
             rentalItems.forEach((item, index) => {
                 const productOptions = products.map((product) => {
                     const selected = String(product.id) === String(item.product_id) ? 'selected' : '';
-                    return `<option value="${product.id}" data-rate="${product.rate || 0}" data-rate-type="${product.rateType || 'days'}" ${selected}>${escapeHtml(product.name)}${product.code ? ` - ${escapeHtml(product.code)}` : ''}</option>`;
+                    const rates = escapeHtml(JSON.stringify(product.rates || {}));
+                    return `<option value="${product.id}" data-rate="${product.rate || 0}" data-rate-type="${product.rateType || 'daily'}" data-deposit="${product.deposit || 0}" data-rates="${rates}" ${selected}>${escapeHtml(product.name)}${product.code ? ` - ${escapeHtml(product.code)}` : ''}</option>`;
                 }).join('');
 
                 container.append(`
@@ -167,11 +176,13 @@
                                 <input name="items[${index}][no_of_duration]" type="number" step="0.01" min="0.01" class="form-control rental-calc" value="${escapeHtml(item.no_of_duration || 1)}" required>
                             </div>
                             <div class="col-lg-1">
-                                <label class="form-label">Type</label>
-                                <select name="items[${index}][duration_type]" class="form-select">
-                                    <option value="days" ${item.duration_type === 'days' ? 'selected' : ''}>Days</option>
-                                    <option value="weeks" ${item.duration_type === 'weeks' ? 'selected' : ''}>Weeks</option>
-                                    <option value="months" ${item.duration_type === 'months' ? 'selected' : ''}>Months</option>
+                                <label class="form-label">Rate Type</label>
+                                <select name="items[${index}][duration_type]" class="form-select rental-rate-type">
+                                    <option value="hourly" ${item.duration_type === 'hourly' ? 'selected' : ''}>Hourly</option>
+                                    <option value="daily" ${['daily', 'days'].includes(item.duration_type) ? 'selected' : ''}>Daily</option>
+                                    <option value="weekly" ${['weekly', 'weeks'].includes(item.duration_type) ? 'selected' : ''}>Weekly</option>
+                                    <option value="monthly" ${['monthly', 'months'].includes(item.duration_type) ? 'selected' : ''}>Monthly</option>
+                                    <option value="custom" ${item.duration_type === 'custom' ? 'selected' : ''}>Custom</option>
                                 </select>
                             </div>
                             <div class="col-lg-1">
@@ -250,7 +261,7 @@
                     product_id: '',
                     start_date: $('#rental_start_date').val(),
                     end_date: $('#rental_end_date').val(),
-                    duration_type: 'days',
+                    duration_type: 'daily',
                     no_of_duration: 1,
                     rate: 0,
                     deposit_amount: 0,
@@ -268,9 +279,23 @@
             $('#rentalItems').on('change', '.rental-product', function () {
                 const selected = $(this).find(':selected');
                 const row = $(this).closest('.rental-item-row');
+                const rateType = selected.data('rate-type') || 'daily';
+                const rates = selected.data('rates') || {};
+                row.find('.rental-rate-type').val(rateType);
                 if (Number(row.find('.rental-rate').val() || 0) === 0) {
-                    row.find('.rental-rate').val(selected.data('rate') || 0);
+                    row.find('.rental-rate').val(rates[rateType] || selected.data('rate') || 0);
                 }
+                if (Number(row.find('[name$="[deposit_amount]"]').val() || 0) === 0) {
+                    row.find('[name$="[deposit_amount]"]').val(selected.data('deposit') || 0);
+                }
+                calculateTotals();
+            });
+
+            $('#rentalItems').on('change', '.rental-rate-type', function () {
+                const row = $(this).closest('.rental-item-row');
+                const selected = row.find('.rental-product :selected');
+                const rates = selected.data('rates') || {};
+                row.find('.rental-rate').val(rates[$(this).val()] || 0);
                 calculateTotals();
             });
 

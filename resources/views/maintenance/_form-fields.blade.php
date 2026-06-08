@@ -12,6 +12,12 @@
 @endphp
 
 <div class="row g-3">
+    <div class="col-lg-3">
+        <label class="form-label" for="work_order_number_{{ $log?->id ?? 'new' }}">Work Order #</label>
+        <input id="work_order_number_{{ $log?->id ?? 'new' }}" name="work_order_number" class="form-control" value="{{ $value('work_order_number') }}" placeholder="Auto generated">
+        <div class="form-text">Leave blank to generate the next work order number.</div>
+    </div>
+
     <div class="col-lg-4">
         <label class="form-label" for="product_id_{{ $log?->id ?? 'new' }}">Equipment <span class="text-danger">*</span></label>
         <select id="product_id_{{ $log?->id ?? 'new' }}" name="product_id" class="form-select" required>
@@ -25,10 +31,33 @@
         <div class="form-text">The asset this service, inspection, or renewal belongs to.</div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-5">
         <label class="form-label" for="title_{{ $log?->id ?? 'new' }}">Title <span class="text-danger">*</span></label>
         <input id="title_{{ $log?->id ?? 'new' }}" name="title" class="form-control" value="{{ $value('title') }}" placeholder="Monthly inspection" required>
         <div class="form-text">Short work name visible in queues and equipment history.</div>
+    </div>
+
+    <div class="col-lg-4">
+        <label class="form-label" for="assigned_to_{{ $log?->id ?? 'new' }}">Assigned To</label>
+        <select id="assigned_to_{{ $log?->id ?? 'new' }}" name="assigned_to" class="form-select">
+            <option value="">Unassigned</option>
+            @foreach($teamMembers as $member)
+                <option value="{{ $member->id }}" @selected((string) $value('assigned_to') === (string) $member->id)>{{ $member->name }} - {{ $member->email }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="col-lg-4">
+        <label class="form-label" for="return_inspection_id_{{ $log?->id ?? 'new' }}">Source Return Inspection</label>
+        <select id="return_inspection_id_{{ $log?->id ?? 'new' }}" name="return_inspection_id" class="form-select">
+            <option value="">Not linked</option>
+            @foreach($returnInspections as $inspection)
+                <option value="{{ $inspection->id }}" @selected((string) $value('return_inspection_id') === (string) $inspection->id)>
+                    {{ $inspection->product?->name }} - RTN-{{ $inspection->rental_id }} - {{ $inspection->condition_status }}
+                </option>
+            @endforeach
+        </select>
+        <div class="form-text">Use this when work comes from a return inspection.</div>
     </div>
 
     <div class="col-lg-2">
@@ -85,8 +114,24 @@
     </div>
 
     <div class="col-lg-3">
-        <label class="form-label" for="cost_{{ $log?->id ?? 'new' }}">Cost</label>
+        <label class="form-label" for="parts_cost_{{ $log?->id ?? 'new' }}">Parts Cost</label>
+        <input id="parts_cost_{{ $log?->id ?? 'new' }}" name="parts_cost" type="number" step="0.01" min="0" class="form-control" value="{{ $value('parts_cost', 0) }}">
+    </div>
+
+    <div class="col-lg-3">
+        <label class="form-label" for="labor_cost_{{ $log?->id ?? 'new' }}">Labor Cost</label>
+        <input id="labor_cost_{{ $log?->id ?? 'new' }}" name="labor_cost" type="number" step="0.01" min="0" class="form-control" value="{{ $value('labor_cost', 0) }}">
+    </div>
+
+    <div class="col-lg-3">
+        <label class="form-label" for="vendor_cost_{{ $log?->id ?? 'new' }}">Vendor Cost</label>
+        <input id="vendor_cost_{{ $log?->id ?? 'new' }}" name="vendor_cost" type="number" step="0.01" min="0" class="form-control" value="{{ $value('vendor_cost', 0) }}">
+    </div>
+
+    <div class="col-lg-3">
+        <label class="form-label" for="cost_{{ $log?->id ?? 'new' }}">Total / Other Cost</label>
         <input id="cost_{{ $log?->id ?? 'new' }}" name="cost" type="number" step="0.01" min="0" class="form-control" value="{{ $value('cost', 0) }}">
+        <div class="form-text">Auto totals parts, labor, and vendor when entered.</div>
     </div>
 
     <div class="col-lg-3">
@@ -99,6 +144,15 @@
             <input type="checkbox" name="affects_availability" value="1" class="form-check-input" @checked($value('affects_availability', true))>
             <span class="form-check-label">Affects availability</span>
         </label>
+    </div>
+
+    <div class="col-lg-3">
+        <label class="form-label" for="final_equipment_status_{{ $log?->id ?? 'new' }}">Status After Completion</label>
+        <select id="final_equipment_status_{{ $log?->id ?? 'new' }}" name="final_equipment_status" class="form-select">
+            @foreach($finalEquipmentStatuses as $statusValue => $label)
+                <option value="{{ $statusValue }}" @selected($value('final_equipment_status', 'available') === $statusValue)>{{ $label }}</option>
+            @endforeach
+        </select>
     </div>
 
     <div class="col-lg-6">
@@ -119,5 +173,10 @@
     <div class="col-lg-6">
         <label class="form-label" for="recommendations_{{ $log?->id ?? 'new' }}">Recommendations</label>
         <textarea id="recommendations_{{ $log?->id ?? 'new' }}" name="recommendations" rows="3" class="form-control" placeholder="Follow-up actions, next inspection notes, or operating cautions.">{{ $value('recommendations') }}</textarea>
+    </div>
+
+    <div class="col-lg-6">
+        <label class="form-label" for="completion_notes_{{ $log?->id ?? 'new' }}">Completion Notes</label>
+        <textarea id="completion_notes_{{ $log?->id ?? 'new' }}" name="completion_notes" rows="3" class="form-control" placeholder="What was completed, what remains blocked, and final readiness decision.">{{ $value('completion_notes') }}</textarea>
     </div>
 </div>

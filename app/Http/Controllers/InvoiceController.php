@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Rental;
+use App\Services\ActivityLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
+    public function __construct(private ActivityLogger $activity) {}
+
     public function index(): View
     {
         $invoices = Invoice::with(['customer', 'rental', 'payments'])
@@ -49,6 +52,12 @@ class InvoiceController extends Controller
 
         $rental->load(['customer', 'rentalItems']);
         $invoice = DB::transaction(fn (): Invoice => $this->createInvoice($rental, $validated));
+
+        $this->activity->log('invoices', 'created', "Created invoice {$invoice->invoice_number}.", $invoice, [
+            'rental_id' => $rental->id,
+            'customer_id' => $invoice->customer_id,
+            'total_amount' => $invoice->total_amount,
+        ]);
 
         return redirect()
             ->route('invoices.show', $invoice)
@@ -92,7 +101,14 @@ class InvoiceController extends Controller
         ]);
 
         $invoice->fill($validated)->save();
+        $changes = $this->activity->changesFor($invoice);
         $invoice->recalculateTotals();
+
+        $this->activity->log('invoices', 'updated', "Updated invoice {$invoice->invoice_number}.", $invoice, [
+            'changes' => $changes,
+            'total_amount' => $invoice->total_amount,
+            'balance_due' => $invoice->balance_due,
+        ]);
 
         return redirect()
             ->route('invoices.show', $invoice)

@@ -12,6 +12,10 @@ import Swal from 'sweetalert2'
 
 window.Swal = Swal;
 
+import $ from 'jquery';
+
+window.$ = window.jQuery = $;
+
 import select2 from 'select2';
 
 select2($);
@@ -29,7 +33,6 @@ import 'quill-mention/dist/quill.mention.min.css';
 
 
 window.Quill = Quill;
-
 
 
 

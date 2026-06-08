@@ -91,7 +91,14 @@ class ProductsController extends Controller
                 'category_id' => $request->integer('category_id') ?: null,
                 'ownership_type' => 'owned',
                 'unit_of_measure' => 'unit',
+                'default_rate_type' => 'daily',
                 'default_rate' => 0,
+                'hourly_rate' => 0,
+                'daily_rate' => 0,
+                'weekly_rate' => 0,
+                'monthly_rate' => 0,
+                'custom_rate' => 0,
+                'default_deposit_amount' => 0,
                 'acquisition_cost' => 0,
                 'replacement_value' => 0,
             ]),
@@ -133,7 +140,7 @@ class ProductsController extends Controller
             'warehouse',
             'storageLocation',
             'documents',
-            'maintenanceLogs',
+            'maintenanceLogs.assignee',
             'rentalItems.rental.customer',
         ]);
 
@@ -236,17 +243,57 @@ class ProductsController extends Controller
             'unit_of_measure' => ['required', 'string', 'max:50'],
             'default_rate_type' => ['nullable', Rule::in(array_keys($this->rateTypes))],
             'default_rate' => ['nullable', 'numeric', 'min:0'],
+            'hourly_rate' => ['nullable', 'numeric', 'min:0'],
+            'daily_rate' => ['nullable', 'numeric', 'min:0'],
+            'weekly_rate' => ['nullable', 'numeric', 'min:0'],
+            'monthly_rate' => ['nullable', 'numeric', 'min:0'],
+            'custom_rate' => ['nullable', 'numeric', 'min:0'],
+            'default_deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'condition' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
         ]);
 
         $validated['acquisition_cost'] = $validated['acquisition_cost'] ?? 0;
         $validated['replacement_value'] = $validated['replacement_value'] ?? 0;
-        $validated['default_rate'] = $validated['default_rate'] ?? 0;
+        $validated['hourly_rate'] = $validated['hourly_rate'] ?? 0;
+        $validated['daily_rate'] = $validated['daily_rate'] ?? 0;
+        $validated['weekly_rate'] = $validated['weekly_rate'] ?? 0;
+        $validated['monthly_rate'] = $validated['monthly_rate'] ?? 0;
+        $validated['custom_rate'] = $validated['custom_rate'] ?? 0;
+        $validated['default_deposit_amount'] = $validated['default_deposit_amount'] ?? 0;
+        $legacyDefaultRate = (float) ($validated['default_rate'] ?? 0);
+
+        if ($legacyDefaultRate > 0 && $validated['default_rate_type']) {
+            $rateField = $validated['default_rate_type'].'_rate';
+
+            if (isset($validated[$rateField]) && (float) $validated[$rateField] === 0.0) {
+                $validated[$rateField] = $legacyDefaultRate;
+            }
+        }
+
+        $validated['default_rate'] = $this->defaultRateForType(
+            $validated['default_rate_type'] ?? null,
+            $validated,
+        );
 
         $this->validateRequiredTemplateAttributes((int) $validated['category_id'], $request->input('attributes', []));
 
         return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function defaultRateForType(?string $rateType, array $data): float
+    {
+        return match ($rateType) {
+            'hourly' => (float) $data['hourly_rate'],
+            'daily' => (float) $data['daily_rate'],
+            'weekly' => (float) $data['weekly_rate'],
+            'monthly' => (float) $data['monthly_rate'],
+            'custom' => (float) $data['custom_rate'],
+            default => 0,
+        };
     }
 
     /**

@@ -3,82 +3,149 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Document;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Validation\Rule;
 
 class CustomersController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        if ($request->ajax()) {
-            $customers = Customer::query();
+        $search = trim((string) $request->input('search'));
+        $status = $request->input('status', 'all');
 
-            $sortCol = null;
-            $sortDir = null;
+        $customers = Customer::withCount(['quotes', 'rentals', 'invoices'])
+            ->withSum('invoices as balance_due_sum', 'balance_due')
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('contact_person', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->when($status === 'active', fn ($query) => $query->has('rentals'))
+            ->when($status === 'balance', fn ($query) => $query->whereHas('invoices', fn ($query) => $query->where('balance_due', '>', 0)))
+            ->latest()
+            ->get();
 
-            if ($request->has('order') && $request->get('order')) {
-                $sortCol = $request->get('order')[0]['name'];
-                $sortDir = $request->get('order')[0]['dir'];
+        $allCustomers = Customer::withCount(['rentals', 'invoices'])
+            ->withSum('invoices as balance_due_sum', 'balance_due')
+            ->get();
 
-                if ($sortCol == 'DT_RowIndex') {
-                    $sortCol = null;
-                    $sortDir = null;
-                }
-            }
-
-            if ($sortCol) {
-                $customers = $customers->orderBy($sortCol, $sortDir ?? 'asc');
-            }
-
-            $filterCount = $customers->clone()->count();
-            $totalCount = Customer::count();
-
-            $customers = $customers->skip($request->start ?? 0)
-                ->take($request->length ?? 10);
-
-            $customers = $customers->get();
-
-            return DataTables::of($customers)
-                ->with([
-                    'recordsTotal' => $totalCount,
-                    'recordsFiltered' => $filterCount,
-                ])
-                ->skipPaging()
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    return view('customers._actions', ['customer' => $row])->render();
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
-
-        return view('customers.index');
-    }
-
-    public function storeOrUpdate(Request $request)
-    {
-        $request->validate([
-            'company_name' => 'required|min:2',
+        return view('customers.index', [
+            'customers' => $customers,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+            ],
+            'summary' => [
+                'total' => $allCustomers->count(),
+                'active' => $allCustomers->where('rentals_count', '>', 0)->count(),
+                'withBalance' => $allCustomers->filter(fn (Customer $customer): bool => (float) $customer->balance_due_sum > 0)->count(),
+                'balanceDue' => (float) $allCustomers->sum('balance_due_sum'),
+            ],
         ]);
-        if ($request->id) {
-            Customer::find($request->id)->update($request->all());
-        } else {
-            Customer::create($request->all());
+    }
+
+    public function create(): View
+    {
+        return view('customers.create', [
+            'customer' => new Customer,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $customer = Customer::create($this->validatedData($request));
+
+        return redirect()
+            ->route('customers.show', $customer)
+            ->with('success', 'Customer created successfully.');
+    }
+
+    public function show(Customer $customer): View
+    {
+        $customer->load([
+            'quotes' => fn ($query) => $query->latest()->limit(10),
+            'rentals.rentalItems.product',
+            'invoices.payments',
+            'portalUsers',
+        ]);
+
+        $documents = Document::where('documentable_type', Customer::class)
+            ->where('documentable_id', $customer->id)
+            ->latest()
+            ->get();
+
+        return view('customers.show', [
+            'customer' => $customer,
+            'documents' => $documents,
+            'summary' => [
+                'quotes' => $customer->quotes->count(),
+                'rentals' => $customer->rentals->count(),
+                'invoices' => $customer->invoices->count(),
+                'balanceDue' => (float) $customer->invoices->sum('balance_due'),
+            ],
+        ]);
+    }
+
+    public function edit(Customer $customer): View
+    {
+        return view('customers.edit', [
+            'customer' => $customer,
+        ]);
+    }
+
+    public function update(Request $request, Customer $customer): RedirectResponse
+    {
+        $customer->update($this->validatedData($request, $customer));
+
+        return redirect()
+            ->route('customers.show', $customer)
+            ->with('success', 'Customer updated successfully.');
+    }
+
+    public function destroy(Customer $customer): RedirectResponse
+    {
+        if ($customer->rentals()->exists() || $customer->quotes()->exists() || $customer->invoices()->exists()) {
+            return redirect()
+                ->route('customers.index')
+                ->withErrors('Customers with quotes, rentals, or invoices cannot be deleted.');
         }
 
-        return response()->json(['message' => 'Customer Created Successfully!']);
-
-    }
-
-    public function edit(Request $request, Customer $customer)
-    {
-        return response()->json($customer);
-    }
-
-    public function destroy(Request $request, Customer $customer)
-    {
         $customer->delete();
 
-        return response()->json(['message' => 'Customer Deleted Successfully!']);
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'Customer deleted successfully.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedData(Request $request, ?Customer $customer = null): array
+    {
+        $companyId = auth()->user()->current_company_id;
+
+        return $request->validate([
+            'company_name' => ['required', 'string', 'min:2', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('customers', 'email')
+                    ->where('company_id', $companyId)
+                    ->ignore($customer),
+            ],
+            'address' => ['nullable', 'string'],
+            'trade_license_number' => ['nullable', 'string', 'max:255'],
+            'vat_number' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
     }
 }

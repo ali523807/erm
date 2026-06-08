@@ -19,6 +19,12 @@ class Product extends Model
             'acquisition_date' => 'date',
             'certificate_expires_at' => 'date',
             'default_rate' => 'decimal:2',
+            'hourly_rate' => 'decimal:2',
+            'daily_rate' => 'decimal:2',
+            'weekly_rate' => 'decimal:2',
+            'monthly_rate' => 'decimal:2',
+            'custom_rate' => 'decimal:2',
+            'default_deposit_amount' => 'decimal:2',
             'acquisition_cost' => 'decimal:2',
             'replacement_value' => 'decimal:2',
         ];

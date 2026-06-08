@@ -29,6 +29,26 @@ class Company extends Model
             ->withTimestamps();
     }
 
+    public function roles(): HasMany
+    {
+        return $this->hasMany(CompanyRole::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(TenantNotification::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);

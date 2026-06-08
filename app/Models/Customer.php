@@ -21,4 +21,14 @@ class Customer extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function rentals(): HasMany
+    {
+        return $this->hasMany(Rental::class);
+    }
+
+    public function portalUsers(): HasMany
+    {
+        return $this->hasMany(CustomerPortalUser::class);
+    }
 }

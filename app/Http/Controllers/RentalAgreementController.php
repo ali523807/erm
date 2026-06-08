@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Rental;
 use App\Models\RentalAgreement;
+use App\Models\ReturnInspection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class RentalAgreementController extends Controller
@@ -38,10 +40,12 @@ class RentalAgreementController extends Controller
 
     public function show(RentalAgreement $agreement): View
     {
-        $agreement->load(['rental.customer', 'rental.invoice', 'rental.rentalItems.product']);
+        $agreement->load(['rental.customer', 'rental.invoice', 'rental.rentalItems.product', 'returnInspections.product']);
 
         return view('agreements.show', [
             'agreement' => $agreement,
+            'conditionStatuses' => $this->conditionStatuses(),
+            'nextEquipmentStatuses' => $this->nextEquipmentStatuses(),
         ]);
     }
 
@@ -104,20 +108,31 @@ class RentalAgreementController extends Controller
             'return_damage_notes' => ['nullable', 'string'],
             'damage_amount' => ['nullable', 'numeric', 'min:0'],
             'customer_accepted_return' => ['accepted'],
+            'inspections' => ['nullable', 'array'],
+            'inspections.*.rental_item_id' => ['required_with:inspections', 'integer'],
+            'inspections.*.condition_status' => ['required_with:inspections', Rule::in(array_keys($this->conditionStatuses()))],
+            'inspections.*.condition_notes' => ['nullable', 'string'],
+            'inspections.*.missing_accessories' => ['nullable', 'string'],
+            'inspections.*.damage_notes' => ['nullable', 'string'],
+            'inspections.*.damage_amount' => ['nullable', 'numeric', 'min:0'],
+            'inspections.*.next_equipment_status' => ['required_with:inspections', Rule::in(array_keys($this->nextEquipmentStatuses()))],
         ]);
 
         DB::transaction(function () use ($agreement, $validated): void {
-            $damageAmount = (float) ($validated['damage_amount'] ?? 0);
+            $rental = $agreement->rental()->with(['invoice', 'rentalItems.product'])->firstOrFail();
+            $itemDamageAmount = $this->storeReturnInspections($agreement, $rental, $validated['inspections'] ?? []);
+            $damageAmount = (float) ($validated['damage_amount'] ?? 0) + $itemDamageAmount;
+            $damageNotes = $this->combinedDamageNotes($validated['return_damage_notes'] ?? null, $agreement);
 
             $agreement->update([
-                ...$validated,
+                ...collect($validated)->except('inspections')->all(),
                 'damage_amount' => $damageAmount,
+                'return_damage_notes' => $damageNotes,
                 'customer_accepted_return' => true,
                 'returned_at' => now(),
                 'status' => 'returned',
             ]);
 
-            $rental = $agreement->rental()->with(['invoice', 'rentalItems'])->firstOrFail();
             $rental->update(['status' => 'returned']);
             $rental->rentalItems()->update(['status' => 'returned']);
 
@@ -125,7 +140,7 @@ class RentalAgreementController extends Controller
                 $invoice = $rental->invoice ?: $this->createInvoiceForDamage($rental);
                 $invoice->forceFill([
                     'damage_amount' => $damageAmount,
-                    'notes' => trim(($invoice->notes ? $invoice->notes."\n\n" : '').'Damage from '.$agreement->agreement_number.': '.($validated['return_damage_notes'] ?? 'Return damage charge.')),
+                    'notes' => trim(($invoice->notes ? $invoice->notes."\n\n" : '').'Damage from '.$agreement->agreement_number.': '.($damageNotes ?: 'Return damage charge.')),
                 ])->save();
                 $invoice->recalculateTotals();
             }
@@ -172,5 +187,115 @@ class RentalAgreementController extends Controller
     private function defaultTerms(): string
     {
         return 'Customer accepts responsibility for the equipment during the rental period, including safe operation, custody, loss, theft, late return, missing accessories, and damage beyond normal wear. Equipment must be returned in the same condition as received.';
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $inspections
+     */
+    private function storeReturnInspections(RentalAgreement $agreement, Rental $rental, array $inspections): float
+    {
+        $items = $rental->rentalItems->keyBy('id');
+
+        return collect($inspections)
+            ->reduce(function (float $total, array $inspection) use ($agreement, $rental, $items): float {
+                $item = $items->get((int) $inspection['rental_item_id']);
+
+                if (! $item) {
+                    return $total;
+                }
+
+                $damageAmount = (float) ($inspection['damage_amount'] ?? 0);
+                $nextStatus = $inspection['next_equipment_status'] ?? $this->defaultNextEquipmentStatus($inspection['condition_status']);
+
+                ReturnInspection::updateOrCreate(
+                    [
+                        'rental_agreement_id' => $agreement->id,
+                        'rental_item_id' => $item->id,
+                    ],
+                    [
+                        'company_id' => $agreement->company_id,
+                        'rental_id' => $rental->id,
+                        'product_id' => $item->product_id,
+                        'condition_status' => $inspection['condition_status'],
+                        'condition_notes' => $inspection['condition_notes'] ?? null,
+                        'missing_accessories' => $inspection['missing_accessories'] ?? null,
+                        'damage_notes' => $inspection['damage_notes'] ?? null,
+                        'damage_amount' => $damageAmount,
+                        'next_equipment_status' => $nextStatus,
+                        'inspected_by' => auth()->user()?->name,
+                        'inspected_at' => now(),
+                    ]
+                );
+
+                if ($item->product) {
+                    $item->product->update([
+                        'status' => $nextStatus,
+                        'condition' => $this->productConditionFromInspection($inspection['condition_status'], $inspection['condition_notes'] ?? null),
+                    ]);
+                }
+
+                return $total + $damageAmount;
+            }, 0.0);
+    }
+
+    private function combinedDamageNotes(?string $generalNotes, RentalAgreement $agreement): ?string
+    {
+        $inspectionNotes = $agreement->returnInspections()
+            ->where(function ($query): void {
+                $query->whereNotNull('damage_notes')
+                    ->orWhere('damage_amount', '>', 0);
+            })
+            ->with('product')
+            ->get()
+            ->map(fn (ReturnInspection $inspection): string => trim(($inspection->product?->name ?: 'Equipment').': '.($inspection->damage_notes ?: 'Damage charge recorded.')))
+            ->filter()
+            ->join("\n");
+
+        return collect([$generalNotes, $inspectionNotes])
+            ->filter()
+            ->join("\n");
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function conditionStatuses(): array
+    {
+        return [
+            'good' => 'Good / normal wear',
+            'dirty' => 'Dirty / cleaning needed',
+            'missing_accessories' => 'Missing accessories',
+            'damaged' => 'Damaged',
+            'lost' => 'Lost',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function nextEquipmentStatuses(): array
+    {
+        return [
+            'available' => 'Available',
+            'maintenance' => 'Maintenance',
+            'damaged' => 'Damaged',
+            'retired' => 'Retired',
+        ];
+    }
+
+    private function defaultNextEquipmentStatus(string $conditionStatus): string
+    {
+        return match ($conditionStatus) {
+            'dirty', 'missing_accessories' => 'maintenance',
+            'damaged', 'lost' => 'damaged',
+            default => 'available',
+        };
+    }
+
+    private function productConditionFromInspection(string $conditionStatus, ?string $notes): string
+    {
+        $label = $this->conditionStatuses()[$conditionStatus] ?? str($conditionStatus)->headline()->toString();
+
+        return trim($label.($notes ? ' - '.$notes : ''));
     }
 }

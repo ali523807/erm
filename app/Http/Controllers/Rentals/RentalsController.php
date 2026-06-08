@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Rental;
+use App\Services\ActivityLogger;
 use App\Services\EquipmentAvailabilityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 class RentalsController extends Controller
 {
+    public function __construct(private ActivityLogger $activity) {}
+
     /**
      * @var array<string, string>
      */
@@ -76,6 +79,12 @@ class RentalsController extends Controller
             return $rental;
         });
 
+        $this->activity->log('rentals', 'created', "Created rental RTN-{$rental->id}.", $rental, [
+            'customer_id' => $rental->customer_id,
+            'status' => $rental->status,
+            'items' => count($items),
+        ]);
+
         return redirect()
             ->route('rentals.show', $rental)
             ->with('success', 'Rental created successfully.');
@@ -117,6 +126,12 @@ class RentalsController extends Controller
             }
         });
 
+        $this->activity->log('rentals', 'updated', "Updated rental RTN-{$rental->id}.", $rental, [
+            'customer_id' => $rental->customer_id,
+            'status' => $rental->status,
+            'items' => count($items),
+        ]);
+
         return redirect()
             ->route('rentals.show', $rental)
             ->with('success', 'Rental updated successfully.');
@@ -128,8 +143,16 @@ class RentalsController extends Controller
             'status' => ['required', Rule::in(array_keys($this->statuses))],
         ]);
 
+        $oldStatus = $rental->status;
         $rental->update($validated);
         $rental->rentalItems()->update(['status' => $this->itemStatusForRental($validated['status'])]);
+
+        $this->activity->log('rentals', 'status_changed', "Changed rental RTN-{$rental->id} status.", $rental, [
+            'status' => [
+                'old' => $oldStatus,
+                'new' => $rental->status,
+            ],
+        ]);
 
         return redirect()
             ->route('rentals.show', $rental)
@@ -140,7 +163,12 @@ class RentalsController extends Controller
     {
         abort_if(! in_array($rental->status, ['reserved', 'cancelled'], true), 422, 'Only reserved or cancelled rentals can be deleted.');
 
+        $rentalId = $rental->id;
         $rental->delete();
+
+        $this->activity->log('rentals', 'deleted', "Deleted rental RTN-{$rentalId}.", null, [
+            'rental_id' => $rentalId,
+        ]);
 
         return redirect()
             ->route('rentals.index')
@@ -170,7 +198,7 @@ class RentalsController extends Controller
                 'product_id' => '',
                 'start_date' => $rental->rental_start_date?->toDateString() ?: now()->toDateString(),
                 'end_date' => $rental->rental_end_date?->toDateString() ?: now()->addDay()->toDateString(),
-                'duration_type' => 'days',
+                'duration_type' => 'daily',
                 'no_of_duration' => 1,
                 'rate' => 0,
                 'deposit_amount' => 0,
@@ -199,7 +227,7 @@ class RentalsController extends Controller
             'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('company_id', $companyId)],
             'items.*.start_date' => ['required', 'date'],
             'items.*.end_date' => ['required', 'date', 'after_or_equal:items.*.start_date'],
-            'items.*.duration_type' => ['required', Rule::in(['days', 'weeks', 'months'])],
+            'items.*.duration_type' => ['required', Rule::in(['hourly', 'daily', 'weekly', 'monthly', 'custom', 'days', 'weeks', 'months'])],
             'items.*.no_of_duration' => ['required', 'numeric', 'min:0.01'],
             'items.*.rate' => ['required', 'numeric', 'min:0'],
             'items.*.deposit_amount' => ['nullable', 'numeric', 'min:0'],
@@ -224,9 +252,9 @@ class RentalsController extends Controller
                     'product_id' => $item['product_id'],
                     'start_date' => $item['start_date'],
                     'end_date' => $item['end_date'],
-                    'duration_type' => $item['duration_type'],
+                    'duration_type' => $this->normalizedRateType($item['duration_type']),
                     'no_of_duration' => $duration,
-                    'rate_type' => $item['duration_type'],
+                    'rate_type' => $this->normalizedRateType($item['duration_type']),
                     'rate' => $rate,
                     'deposit_amount' => $item['deposit_amount'] ?? 0,
                     'total_days' => $duration,
@@ -238,6 +266,16 @@ class RentalsController extends Controller
             ->all();
     }
 
+    private function normalizedRateType(string $rateType): string
+    {
+        return match ($rateType) {
+            'days' => 'daily',
+            'weeks' => 'weekly',
+            'months' => 'monthly',
+            default => $rateType,
+        };
+    }
+
     /**
      * @param  array<int, array<string, mixed>>  $items
      *
@@ -246,6 +284,7 @@ class RentalsController extends Controller
     private function validateAvailability(array $items, EquipmentAvailabilityService $availability, ?int $ignoreRentalId = null): void
     {
         $errors = [];
+        $selectedProducts = [];
 
         foreach ($items as $index => $item) {
             $product = Product::find((int) $item['product_id']);
@@ -253,6 +292,12 @@ class RentalsController extends Controller
             if (! $product) {
                 continue;
             }
+
+            if (in_array($product->id, $selectedProducts, true)) {
+                $errors["items.{$index}.product_id"] = $product->name.' is already selected. Add each asset only once.';
+            }
+
+            $selectedProducts[] = $product->id;
 
             $conflicts = $availability->conflicts($product, $item['start_date'], $item['end_date'], $ignoreRentalId);
 

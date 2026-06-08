@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
+use App\Services\ActivityLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class InvoicePaymentController extends Controller
 {
+    public function __construct(private ActivityLogger $activity) {}
+
     public function index(): View
     {
         $payments = InvoicePayment::with(['invoice.customer', 'invoice.rental'])
@@ -43,12 +46,20 @@ class InvoicePaymentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $invoice->payments()->create([
+        $payment = $invoice->payments()->create([
             ...$validated,
             'company_id' => $invoice->company_id,
         ]);
 
         $invoice->recalculateTotals();
+
+        $this->activity->log('payments', 'created', "Recorded payment for invoice {$invoice->invoice_number}.", $payment, [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'amount' => $payment->amount,
+            'method' => $payment->method,
+            'balance_due' => $invoice->balance_due,
+        ]);
 
         return redirect()
             ->route('invoices.show', $invoice)

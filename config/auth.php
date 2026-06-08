@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CustomerPortalUser;
 use App\Models\PlatformAdmin;
 use App\Models\User;
 
@@ -48,6 +49,11 @@ return [
             'driver' => 'session',
             'provider' => 'platform_admins',
         ],
+
+        'customer' => [
+            'driver' => 'session',
+            'provider' => 'customer_portal_users',
+        ],
     ],
 
     /*
@@ -76,6 +82,11 @@ return [
         'platform_admins' => [
             'driver' => 'eloquent',
             'model' => PlatformAdmin::class,
+        ],
+
+        'customer_portal_users' => [
+            'driver' => 'eloquent',
+            'model' => CustomerPortalUser::class,
         ],
 
         // 'users' => [

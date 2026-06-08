@@ -2,12 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\ActivityLog;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\CategoryAttributeTemplate;
 use App\Models\Company;
 use App\Models\CompanySubscription;
 use App\Models\Customer;
+use App\Models\CustomerPortalUser;
+use App\Models\Document;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\MaintenanceLog;
@@ -21,8 +24,11 @@ use App\Models\RentalAgreement;
 use App\Models\RentalItem;
 use App\Models\StorageLocation;
 use App\Models\SubscriptionPlan;
+use App\Models\TenantNotification;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Services\NotificationGenerator;
+use App\Support\CompanyRoleCatalog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +63,7 @@ class SampleCompanySeeder extends Seeder
         );
 
         $this->clearTenantData($company);
+        app(CompanyRoleCatalog::class)->ensureDefaults($company);
 
         $user = User::updateOrCreate(
             ['email' => 'demo@globalrentals.test'],
@@ -73,6 +80,8 @@ class SampleCompanySeeder extends Seeder
                 'joined_at' => now(),
             ],
         ]);
+
+        $this->createTeamMembers($company);
 
         $plan = SubscriptionPlan::where('slug', 'business')->first()
             ?? SubscriptionPlan::orderByDesc('monthly_price')->first();
@@ -113,6 +122,10 @@ class SampleCompanySeeder extends Seeder
         $this->createInvoices($company, $rentals);
         $this->createAgreements($company, $rentals);
         $this->createQuotes($company, $customers, $equipment);
+        $this->createDocumentsCenter($company, $user, $customers, $equipment, $rentals);
+        $this->createCustomerPortalUsers($company, $customers);
+        $this->createActivityLogs($company, $user);
+        app(NotificationGenerator::class)->generateForCompany($company);
     }
 
     private function clearTenantData(Company $company): void
@@ -135,6 +148,150 @@ class SampleCompanySeeder extends Seeder
         Warehouse::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Branch::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         CompanySubscription::where('company_id', $company->id)->delete();
+        ActivityLog::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        TenantNotification::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        Document::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        CustomerPortalUser::where('company_id', $company->id)->delete();
+    }
+
+    /**
+     * @param  array<int, Customer>  $customers
+     */
+    private function createCustomerPortalUsers(Company $company, array $customers): void
+    {
+        foreach ($customers as $customer) {
+            if (! $customer->email) {
+                continue;
+            }
+
+            CustomerPortalUser::updateOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'email' => $customer->email,
+                ],
+                [
+                    'customer_id' => $customer->id,
+                    'name' => $customer->contact_person ?: $customer->company_name,
+                    'password' => Hash::make('Password123!'),
+                    'is_active' => true,
+                ],
+            );
+        }
+    }
+
+    /**
+     * @param  array<int, Customer>  $customers
+     * @param  array<string, Product>  $equipment
+     * @param  array<string, Rental>  $rentals
+     */
+    private function createDocumentsCenter(Company $company, User $user, array $customers, array $equipment, array $rentals): void
+    {
+        $documents = [
+            [
+                'owner' => $company,
+                'type' => 'tax_certificate',
+                'title' => 'Company Tax Registration',
+                'name' => 'company-tax-registration.pdf',
+                'content' => 'Sample company tax registration document.',
+                'expires_at' => now()->addDays(24),
+                'notes' => 'Renew before the next billing quarter.',
+            ],
+            [
+                'owner' => $customers[0],
+                'type' => 'trade_license',
+                'title' => 'Northstar Trade License',
+                'name' => 'northstar-trade-license.pdf',
+                'content' => 'Sample customer trade license.',
+                'expires_at' => now()->addDays(18),
+                'notes' => 'Required before large project dispatch.',
+            ],
+            [
+                'owner' => $rentals['construction'],
+                'type' => 'delivery_note',
+                'title' => 'Construction Rental Delivery Note',
+                'name' => 'construction-delivery-note.pdf',
+                'content' => 'Sample delivery note for construction rental.',
+                'expires_at' => null,
+                'notes' => 'Signed at pickup from Houston yard.',
+            ],
+            [
+                'owner' => $equipment['generator'],
+                'type' => 'insurance',
+                'title' => 'Generator Insurance Schedule',
+                'name' => 'generator-insurance.pdf',
+                'content' => 'Sample insurance schedule for generator.',
+                'expires_at' => now()->addDays(29),
+                'notes' => 'Insurance renewal reminder sample.',
+            ],
+        ];
+
+        foreach ($documents as $document) {
+            $path = 'documents/'.$company->id.'/'.$document['name'];
+            Storage::disk('public')->put($path, $document['content']);
+
+            Document::create([
+                'company_id' => $company->id,
+                'uploaded_by' => $user->id,
+                'documentable_type' => $document['owner']::class,
+                'documentable_id' => $document['owner']->id,
+                'type' => $document['type'],
+                'title' => $document['title'],
+                'original_name' => $document['name'],
+                'file_path' => $path,
+                'disk' => 'public',
+                'mime_type' => 'application/pdf',
+                'size' => strlen($document['content']),
+                'expires_at' => $document['expires_at'],
+                'notes' => $document['notes'],
+            ]);
+        }
+    }
+
+    private function createActivityLogs(Company $company, User $user): void
+    {
+        foreach ([
+            ['team', 'created', 'Added sample operations, sales, accounts, and maintenance users.', ['source' => 'sample_seeder']],
+            ['roles', 'updated', 'Reviewed default role permissions for demo company.', ['role' => 'Admin']],
+            ['rentals', 'created', 'Created sample construction rental.', ['rental' => 'RTN-demo']],
+            ['payments', 'created', 'Recorded sample advance payment.', ['amount' => 1500, 'method' => 'bank_transfer']],
+        ] as [$module, $action, $description, $properties]) {
+            ActivityLog::withoutGlobalScopes()->create([
+                'company_id' => $company->id,
+                'user_id' => $user->id,
+                'module' => $module,
+                'action' => $action,
+                'description' => $description,
+                'properties' => $properties,
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'SampleCompanySeeder',
+            ]);
+        }
+    }
+
+    private function createTeamMembers(Company $company): void
+    {
+        foreach ([
+            ['Olivia Sales', 'sales@globalrentals.test', 'sales'],
+            ['Noah Operations', 'operations.team@globalrentals.test', 'operations'],
+            ['Ava Accounts', 'accounts@globalrentals.test', 'accounts'],
+            ['Mia Maintenance', 'maintenance@globalrentals.test', 'maintenance'],
+        ] as [$name, $email, $role]) {
+            $member = User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'password' => Hash::make('Password123!'),
+                    'current_company_id' => $company->id,
+                ],
+            );
+
+            $company->users()->syncWithoutDetaching([
+                $member->id => [
+                    'role' => $role,
+                    'joined_at' => now(),
+                ],
+            ]);
+        }
     }
 
     /**
@@ -417,6 +574,12 @@ class SampleCompanySeeder extends Seeder
                 'unit_of_measure' => 'unit',
                 'default_rate_type' => 'daily',
                 'default_rate' => 375,
+                'hourly_rate' => 55,
+                'daily_rate' => 375,
+                'weekly_rate' => 1800,
+                'monthly_rate' => 6200,
+                'custom_rate' => 0,
+                'default_deposit_amount' => 1000,
                 'condition' => 'Good',
                 'notes' => 'Include load test certificate before dispatch.',
             ]),
@@ -439,6 +602,12 @@ class SampleCompanySeeder extends Seeder
                 'unit_of_measure' => 'unit',
                 'default_rate_type' => 'daily',
                 'default_rate' => 95,
+                'hourly_rate' => 18,
+                'daily_rate' => 95,
+                'weekly_rate' => 525,
+                'monthly_rate' => 1650,
+                'custom_rate' => 0,
+                'default_deposit_amount' => 500,
                 'condition' => 'Excellent',
             ]),
             'tables' => Product::create([
@@ -456,6 +625,12 @@ class SampleCompanySeeder extends Seeder
                 'unit_of_measure' => 'set',
                 'default_rate_type' => 'daily',
                 'default_rate' => 120,
+                'hourly_rate' => 20,
+                'daily_rate' => 120,
+                'weekly_rate' => 540,
+                'monthly_rate' => 1500,
+                'custom_rate' => 0,
+                'default_deposit_amount' => 300,
                 'condition' => 'New',
             ]),
             'camera' => Product::create([
@@ -477,6 +652,12 @@ class SampleCompanySeeder extends Seeder
                 'unit_of_measure' => 'kit',
                 'default_rate_type' => 'daily',
                 'default_rate' => 450,
+                'hourly_rate' => 75,
+                'daily_rate' => 450,
+                'weekly_rate' => 2100,
+                'monthly_rate' => 7200,
+                'custom_rate' => 0,
+                'default_deposit_amount' => 1500,
                 'condition' => 'Service Due',
                 'certificate_expires_at' => now()->addMonths(3),
             ]),

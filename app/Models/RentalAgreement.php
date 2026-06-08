@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RentalAgreement extends Model
 {
@@ -29,5 +30,10 @@ class RentalAgreement extends Model
     public function rental(): BelongsTo
     {
         return $this->belongsTo(Rental::class);
+    }
+
+    public function returnInspections(): HasMany
+    {
+        return $this->hasMany(ReturnInspection::class);
     }
 }

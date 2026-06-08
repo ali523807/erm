@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Rental;
+use App\Services\ActivityLogger;
 use App\Services\EquipmentAvailabilityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 class QuotesController extends Controller
 {
+    public function __construct(private ActivityLogger $activity) {}
+
     /**
      * @var array<string, string>
      */
@@ -70,6 +73,12 @@ class QuotesController extends Controller
             return $quote;
         });
 
+        $this->activity->log('quotes', 'created', "Created quote {$quote->quote_number}.", $quote, [
+            'customer_id' => $quote->customer_id,
+            'total_amount' => $quote->total_amount,
+            'items' => count($items),
+        ]);
+
         return redirect()
             ->route('quotes.show', $quote)
             ->with('success', 'Quote created successfully.');
@@ -116,6 +125,12 @@ class QuotesController extends Controller
             }
         });
 
+        $this->activity->log('quotes', 'updated', "Updated quote {$quote->quote_number}.", $quote, [
+            'customer_id' => $quote->customer_id,
+            'total_amount' => $quote->total_amount,
+            'items' => count($items),
+        ]);
+
         return redirect()
             ->route('quotes.show', $quote)
             ->with('success', 'Quote updated successfully.');
@@ -129,7 +144,15 @@ class QuotesController extends Controller
 
         abort_if($quote->status === 'converted', 422, 'Converted quotes cannot be changed.');
 
+        $oldStatus = $quote->status;
         $quote->update($validated);
+
+        $this->activity->log('quotes', 'status_changed', "Changed quote {$quote->quote_number} status.", $quote, [
+            'status' => [
+                'old' => $oldStatus,
+                'new' => $quote->status,
+            ],
+        ]);
 
         return redirect()
             ->route('quotes.show', $quote)
@@ -185,6 +208,10 @@ class QuotesController extends Controller
             return $rental;
         });
 
+        $this->activity->log('quotes', 'converted', "Converted quote {$quote->quote_number} to rental RTN-{$rental->id}.", $quote, [
+            'rental_id' => $rental->id,
+        ]);
+
         return redirect()
             ->route('rentals.show', $rental)
             ->with('success', "Quote {$quote->quote_number} converted to rental RTN-{$rental->id}.");
@@ -194,7 +221,12 @@ class QuotesController extends Controller
     {
         abort_if($quote->status === 'converted', 422, 'Converted quotes cannot be deleted.');
 
+        $quoteNumber = $quote->quote_number;
         $quote->delete();
+
+        $this->activity->log('quotes', 'deleted', "Deleted quote {$quoteNumber}.", null, [
+            'quote_number' => $quoteNumber,
+        ]);
 
         return redirect()
             ->route('quotes.index')
@@ -216,7 +248,6 @@ class QuotesController extends Controller
                 'start_date' => $item->start_date?->format('Y-m-d'),
                 'end_date' => $item->end_date?->format('Y-m-d'),
                 'duration_type' => $item->duration_type,
-                'quantity' => $item->quantity,
                 'no_of_duration' => $item->no_of_duration,
                 'rate' => $item->rate,
                 'deposit_amount' => $item->deposit_amount,
@@ -225,8 +256,7 @@ class QuotesController extends Controller
                 'product_id' => '',
                 'start_date' => $quote->rental_start_date?->format('Y-m-d') ?? now()->toDateString(),
                 'end_date' => $quote->rental_end_date?->format('Y-m-d') ?? now()->addDay()->toDateString(),
-                'duration_type' => 'days',
-                'quantity' => 1,
+                'duration_type' => 'daily',
                 'no_of_duration' => 1,
                 'rate' => 0,
                 'deposit_amount' => 0,
@@ -258,8 +288,7 @@ class QuotesController extends Controller
             'items.*.product_id' => ['required', Rule::exists('products', 'id')->where('company_id', $companyId)],
             'items.*.start_date' => ['required', 'date'],
             'items.*.end_date' => ['required', 'date', 'after_or_equal:items.*.start_date'],
-            'items.*.duration_type' => ['required', Rule::in(['days', 'weeks', 'months'])],
-            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.duration_type' => ['required', Rule::in(['hourly', 'daily', 'weekly', 'monthly', 'custom', 'days', 'weeks', 'months'])],
             'items.*.no_of_duration' => ['required', 'numeric', 'min:0.01'],
             'items.*.rate' => ['required', 'numeric', 'min:0'],
             'items.*.deposit_amount' => ['nullable', 'numeric', 'min:0'],
@@ -276,7 +305,6 @@ class QuotesController extends Controller
         return collect($items)
             ->filter(fn (array $item): bool => ! empty($item['product_id']))
             ->map(function (array $item): array {
-                $quantity = (float) $item['quantity'];
                 $duration = (float) $item['no_of_duration'];
                 $rate = (float) $item['rate'];
 
@@ -284,17 +312,27 @@ class QuotesController extends Controller
                     'product_id' => $item['product_id'],
                     'start_date' => $item['start_date'],
                     'end_date' => $item['end_date'],
-                    'duration_type' => $item['duration_type'],
-                    'quantity' => $quantity,
+                    'duration_type' => $this->normalizedRateType($item['duration_type']),
+                    'quantity' => 1,
                     'no_of_duration' => $duration,
                     'rate' => $rate,
                     'deposit_amount' => $item['deposit_amount'] ?? 0,
-                    'line_total' => $quantity * $duration * $rate,
+                    'line_total' => $duration * $rate,
                     'notes' => $item['notes'] ?? null,
                 ];
             })
             ->values()
             ->all();
+    }
+
+    private function normalizedRateType(string $rateType): string
+    {
+        return match ($rateType) {
+            'days' => 'daily',
+            'weeks' => 'weekly',
+            'months' => 'monthly',
+            default => $rateType,
+        };
     }
 
     /**
@@ -321,6 +359,7 @@ class QuotesController extends Controller
     private function validateAvailability(array $items, EquipmentAvailabilityService $availability): void
     {
         $errors = [];
+        $selectedProducts = [];
 
         foreach ($items as $index => $item) {
             $product = Product::find((int) $item['product_id']);
@@ -328,6 +367,12 @@ class QuotesController extends Controller
             if (! $product) {
                 continue;
             }
+
+            if (in_array($product->id, $selectedProducts, true)) {
+                $errors["items.{$index}.product_id"] = $product->name.' is already selected. Add each asset only once.';
+            }
+
+            $selectedProducts[] = $product->id;
 
             $conflicts = $availability->conflicts($product, $item['start_date'], $item['end_date']);
 

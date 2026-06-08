@@ -63,6 +63,28 @@ it('moves rentals through the operations status workflow', function () {
         ->and($rental->rentalItems()->first()->status)->toBe('returned');
 });
 
+it('does not allow the same equipment asset twice on one rental', function () {
+    [$user, , $customer, $product] = rentalOpsTenant('rental-duplicate@example.com', 'Rental Duplicate Co');
+
+    $payload = rentalOpsPayload($customer, $product);
+    $payload['items'][] = [
+        'product_id' => $product->id,
+        'start_date' => '2026-09-01',
+        'end_date' => '2026-09-03',
+        'duration_type' => 'days',
+        'no_of_duration' => 3,
+        'rate' => 200,
+        'deposit_amount' => 100,
+        'status' => 'reserved',
+    ];
+
+    $this->actingAs($user)
+        ->post(route('rentals.store'), $payload)
+        ->assertSessionHasErrors('items.1.product_id');
+
+    expect(Rental::count())->toBe(0);
+});
+
 /**
  * @return array{0: User, 1: Company, 2: Customer, 3: Product}
  */
@@ -103,6 +125,10 @@ function rentalOpsTenant(string $email = 'rental-owner@example.com', string $com
         'unit_of_measure' => 'unit',
         'default_rate_type' => 'daily',
         'default_rate' => 200,
+        'daily_rate' => 200,
+        'weekly_rate' => 950,
+        'monthly_rate' => 3200,
+        'default_deposit_amount' => 100,
     ]);
 
     $customer = Customer::create([
@@ -134,7 +160,7 @@ function rentalOpsPayload(Customer $customer, Product $product, array $overrides
                 'product_id' => $product->id,
                 'start_date' => '2026-09-01',
                 'end_date' => '2026-09-03',
-                'duration_type' => 'days',
+                'duration_type' => 'daily',
                 'no_of_duration' => 3,
                 'rate' => 200,
                 'deposit_amount' => 100,

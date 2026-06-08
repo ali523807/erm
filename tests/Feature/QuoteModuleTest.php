@@ -17,7 +17,8 @@ it('creates a quote with equipment lines and totals', function () {
     $this->actingAs($user)
         ->get(route('quotes.create'))
         ->assertOk()
-        ->assertSee('Create Quote');
+        ->assertSee('Create Quote')
+        ->assertDontSee('>Qty<', false);
 
     $this->actingAs($user)
         ->post(route('quotes.store'), quotePayload($customer, $product))
@@ -30,13 +31,35 @@ it('creates a quote with equipment lines and totals', function () {
         ->and($quote->quote_number)->toBe('QTE-2026-0001')
         ->and((float) $quote->subtotal)->toBe(600.0)
         ->and((float) $quote->total_amount)->toBe(640.0)
-        ->and($quote->items)->toHaveCount(1);
+        ->and($quote->items)->toHaveCount(1)
+        ->and((float) $quote->items->first()->quantity)->toBe(1.0);
 
     $this->actingAs($user)
         ->get(route('quotes.show', $quote))
         ->assertOk()
         ->assertSee($quote->quote_number)
         ->assertSee('Silent Generator');
+});
+
+it('does not allow the same equipment asset twice on one quote', function () {
+    [$user, , $customer, $product] = createQuoteTenant('quote-duplicate@example.com', 'Quote Duplicate Rentals');
+
+    $payload = quotePayload($customer, $product);
+    $payload['items'][] = [
+        'product_id' => $product->id,
+        'start_date' => '2026-09-01',
+        'end_date' => '2026-09-03',
+        'duration_type' => 'days',
+        'no_of_duration' => 3,
+        'rate' => 200,
+        'deposit_amount' => 100,
+    ];
+
+    $this->actingAs($user)
+        ->post(route('quotes.store'), $payload)
+        ->assertSessionHasErrors('items.1.product_id');
+
+    expect(Quote::count())->toBe(0);
 });
 
 it('blocks quotes when equipment is unavailable', function () {
@@ -73,7 +96,6 @@ it('blocks quotes when equipment is unavailable', function () {
                     'start_date' => '2026-08-03',
                     'end_date' => '2026-08-06',
                     'duration_type' => 'days',
-                    'quantity' => 1,
                     'no_of_duration' => 4,
                     'rate' => 100,
                 ],
@@ -197,6 +219,10 @@ function createQuoteTenant(string $email = 'quote-owner@example.com', string $co
         'unit_of_measure' => 'unit',
         'default_rate_type' => 'daily',
         'default_rate' => 200,
+        'daily_rate' => 200,
+        'weekly_rate' => 950,
+        'monthly_rate' => 3200,
+        'default_deposit_amount' => 100,
     ]);
 
     $customer = Customer::create([
@@ -231,8 +257,7 @@ function quotePayload(Customer $customer, Product $product, array $overrides = [
                 'product_id' => $product->id,
                 'start_date' => '2026-09-01',
                 'end_date' => '2026-09-03',
-                'duration_type' => 'days',
-                'quantity' => 1,
+                'duration_type' => 'daily',
                 'no_of_duration' => 3,
                 'rate' => 200,
                 'deposit_amount' => 100,

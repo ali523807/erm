@@ -69,13 +69,26 @@ it('captures checkout and return signoffs and pushes damage to invoice', functio
         ->and($agreement->rental->refresh()->status)->toBe('active')
         ->and($agreement->rental->rentalItems()->first()->status)->toBe('on_rent');
 
+    $rentalItem = $agreement->rental->rentalItems()->first();
+
     $this->actingAs($user)
         ->post(route('agreements.return', $agreement), [
             'return_representative' => 'Sam Carter',
             'return_condition' => 'Returned with cracked panel cover.',
             'return_missing_accessories' => 'No missing accessories.',
             'return_damage_notes' => 'Panel cover replacement required.',
-            'damage_amount' => 125,
+            'damage_amount' => 25,
+            'inspections' => [
+                [
+                    'rental_item_id' => $rentalItem->id,
+                    'condition_status' => 'damaged',
+                    'condition_notes' => 'Panel cracked during site use.',
+                    'missing_accessories' => 'No missing accessories.',
+                    'damage_notes' => 'Panel cover replacement required.',
+                    'damage_amount' => 100,
+                    'next_equipment_status' => 'maintenance',
+                ],
+            ],
             'customer_accepted_return' => '1',
         ])
         ->assertRedirect(route('agreements.show', $agreement));
@@ -85,6 +98,8 @@ it('captures checkout and return signoffs and pushes damage to invoice', functio
     expect($agreement->refresh()->status)->toBe('returned')
         ->and($agreement->customer_accepted_return)->toBeTrue()
         ->and($agreement->damage_amount)->toBe('125.00')
+        ->and($agreement->returnInspections()->count())->toBe(1)
+        ->and($rentalItem->product->refresh()->status)->toBe('maintenance')
         ->and($agreement->rental->refresh()->status)->toBe('returned')
         ->and($invoice)->not->toBeNull()
         ->and($invoice->damage_amount)->toBe('125.00')

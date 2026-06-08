@@ -67,6 +67,11 @@ it('creates flexible equipment with tenant locations and dynamic attributes', fu
             'unit_of_measure' => 'kit',
             'default_rate_type' => 'daily',
             'default_rate' => 450,
+            'hourly_rate' => 75,
+            'daily_rate' => 450,
+            'weekly_rate' => 2100,
+            'monthly_rate' => 7200,
+            'default_deposit_amount' => 1500,
             'condition' => 'Excellent',
             'attributes' => [
                 ['key' => 'Lens Mount', 'value' => 'RF'],
@@ -85,6 +90,9 @@ it('creates flexible equipment with tenant locations and dynamic attributes', fu
         ->and($product->ownership_type)->toBe('owned')
         ->and($product->unit_of_measure)->toBe('kit')
         ->and((float) $product->default_rate)->toBe(450.0)
+        ->and((float) $product->daily_rate)->toBe(450.0)
+        ->and((float) $product->weekly_rate)->toBe(2100.0)
+        ->and((float) $product->default_deposit_amount)->toBe(1500.0)
         ->and($product->attributes()->count())->toBe(2);
 });
 
@@ -209,6 +217,7 @@ it('shows the equipment edit page and updates flexible attributes', function () 
             'unit_of_measure' => 'set',
             'default_rate_type' => 'daily',
             'default_rate' => 25,
+            'weekly_rate' => 100,
             'attributes' => [
                 ['key' => 'Seats', 'value' => '6'],
             ],
@@ -220,6 +229,8 @@ it('shows the equipment edit page and updates flexible attributes', function () 
     expect($product->name)->toBe('Banquet Table Set')
         ->and($product->status)->toBe('maintenance')
         ->and($product->unit_of_measure)->toBe('set')
+        ->and((float) $product->daily_rate)->toBe(25.0)
+        ->and((float) $product->weekly_rate)->toBe(100.0)
         ->and($product->attributes()->first()->key)->toBe('Seats');
 });
 

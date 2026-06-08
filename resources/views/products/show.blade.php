@@ -82,6 +82,19 @@
                             <dt>Unit of Measure</dt>
                             <dd>{{ $product->unit_of_measure ?: 'unit' }}</dd>
                         </div>
+                        <div>
+                            <dt>Default Deposit</dt>
+                            <dd>{{ $formatMoney($product->default_deposit_amount) }}</dd>
+                        </div>
+                        <div>
+                            <dt>Rate Card</dt>
+                            <dd>
+                                Hourly {{ $formatMoney($product->hourly_rate) }} /
+                                Daily {{ $formatMoney($product->daily_rate) }} /
+                                Weekly {{ $formatMoney($product->weekly_rate) }} /
+                                Monthly {{ $formatMoney($product->monthly_rate) }}
+                            </dd>
+                        </div>
                     </dl>
 
                     <div class="mt-3">
@@ -205,8 +218,8 @@
                 <section class="panel">
                     <div class="panel-header align-items-start">
                         <div>
-                            <h2>Maintenance and Inspection History</h2>
-                            <p>Service, repair, inspection, and compliance work recorded for this equipment.</p>
+                            <h2>Maintenance Work Order History</h2>
+                            <p>Service, repair, inspection, compliance, and return-damage work recorded for this equipment.</p>
                         </div>
                         <a href="{{ route('maintenance.index') }}" class="btn btn-sm btn-outline-secondary">Open Maintenance</a>
                     </div>
@@ -226,7 +239,8 @@
                             @forelse($product->maintenanceLogs->sortByDesc('scheduled_at') as $log)
                                 <tr>
                                     <td>
-                                        <strong>{{ $log->title ?: str($log->type)->headline() }}</strong>
+                                        <strong>{{ $log->work_order_number ?: ($log->title ?: str($log->type)->headline()) }}</strong>
+                                        <div>{{ $log->title ?: str($log->type)->headline() }}</div>
                                         <div class="text-muted text-xs">{{ str($log->type)->headline() }} · {{ str($log->priority)->headline() }}</div>
                                     </td>
                                     <td>
@@ -234,7 +248,7 @@
                                         <div class="text-muted text-xs">Next: {{ $log->next_service_due ?: 'Not set' }}</div>
                                     </td>
                                     <td>{{ str($log->status)->headline() }}</td>
-                                    <td>{{ $log->service_provider ?: 'Not recorded' }}</td>
+                                    <td>{{ $log->assignee?->name ?: ($log->service_provider ?: 'Not recorded') }}</td>
                                     <td>{{ $formatMoney($log->cost) }}</td>
                                 </tr>
                             @empty
