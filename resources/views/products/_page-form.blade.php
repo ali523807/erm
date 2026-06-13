@@ -117,49 +117,51 @@
                         @error('condition')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="col-lg-3">
-                        <label for="branch_id" class="form-label">Branch</label>
-                        <select id="branch_id" name="branch_id" class="form-select @error('branch_id') is-invalid @enderror">
-                            <option value="">Unassigned</option>
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}" @selected((string) $fieldValue('branch_id') === (string) $branch->id)>
-                                    {{ $branch->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">Primary business branch responsible for this asset.</div>
-                        @error('branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    @if($canManageLocations)
+                        <div class="col-lg-3">
+                            <label for="branch_id" class="form-label">Branch</label>
+                            <select id="branch_id" name="branch_id" class="form-select @error('branch_id') is-invalid @enderror">
+                                <option value="">Unassigned</option>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" @selected((string) $fieldValue('branch_id') === (string) $branch->id)>
+                                        {{ $branch->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Primary business branch responsible for this asset.</div>
+                            @error('branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                    <div class="col-lg-3">
-                        <label for="warehouse_id" class="form-label">Warehouse / Yard</label>
-                        <select id="warehouse_id" name="warehouse_id" class="form-select @error('warehouse_id') is-invalid @enderror">
-                            <option value="">Unassigned</option>
-                            @foreach($warehouses as $warehouse)
-                                <option value="{{ $warehouse->id }}" @selected((string) $fieldValue('warehouse_id') === (string) $warehouse->id)>
-                                    {{ $warehouse->branch?->name }} / {{ $warehouse->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">Use for yards, depots, stores, showrooms, rooms, or physical stock areas.</div>
-                        @error('warehouse_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                        <div class="col-lg-3">
+                            <label for="warehouse_id" class="form-label">Warehouse / Yard</label>
+                            <select id="warehouse_id" name="warehouse_id" class="form-select @error('warehouse_id') is-invalid @enderror">
+                                <option value="">Unassigned</option>
+                                @foreach($warehouses as $warehouse)
+                                    <option value="{{ $warehouse->id }}" @selected((string) $fieldValue('warehouse_id') === (string) $warehouse->id)>
+                                        {{ $warehouse->branch?->name }} / {{ $warehouse->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Use for yards, depots, stores, showrooms, rooms, or physical stock areas.</div>
+                            @error('warehouse_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                    <div class="col-lg-6">
-                        <label for="storage_location_id" class="form-label">Storage Location</label>
-                        <select id="storage_location_id" name="storage_location_id" class="form-select @error('storage_location_id') is-invalid @enderror">
-                            <option value="">Unassigned</option>
-                            @foreach($storageLocations as $location)
-                                <option value="{{ $location->id }}" @selected((string) $fieldValue('storage_location_id') === (string) $location->id)>
-                                    {{ $location->warehouse?->name }} / {{ $location->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="form-text">Shelf, bay, rack, room, parking slot, bin, floor zone, or any exact storage point.</div>
-                        @error('storage_location_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                        <div class="col-lg-6">
+                            <label for="storage_location_id" class="form-label">Storage Location</label>
+                            <select id="storage_location_id" name="storage_location_id" class="form-select @error('storage_location_id') is-invalid @enderror">
+                                <option value="">Unassigned</option>
+                                @foreach($storageLocations as $location)
+                                    <option value="{{ $location->id }}" @selected((string) $fieldValue('storage_location_id') === (string) $location->id)>
+                                        {{ $location->warehouse?->name }} / {{ $location->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Shelf, bay, rack, room, parking slot, bin, floor zone, or any exact storage point.</div>
+                            @error('storage_location_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    @endif
 
-                    <div class="col-lg-6">
+                    <div class="{{ $canManageLocations ? 'col-lg-6' : 'col-lg-3' }}">
                         <label for="unit_of_measure" class="form-label">Unit of Measure <span class="text-danger">*</span></label>
                         <input id="unit_of_measure" name="unit_of_measure" class="form-control @error('unit_of_measure') is-invalid @enderror" value="{{ $fieldValue('unit_of_measure', 'unit') }}" placeholder="unit, set, pair, meter, hour, kit" required>
                         <div class="form-text">This keeps the system flexible for single assets, grouped kits, lengths, bundles, services, and consumable-like rental items.</div>

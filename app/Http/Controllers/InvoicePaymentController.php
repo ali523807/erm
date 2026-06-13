@@ -22,14 +22,15 @@ class InvoicePaymentController extends Controller
             ->latest('payment_date')
             ->latest()
             ->get();
+        $baseAmount = fn (InvoicePayment $payment): float => (float) $payment->amount * (float) ($payment->invoice?->exchange_rate ?: 1);
 
         return view('payments.index', [
             'payments' => $payments,
             'summary' => [
-                'total' => (float) $payments->sum('amount'),
+                'total' => (float) $payments->sum($baseAmount),
                 'count' => $payments->count(),
-                'cash' => (float) $payments->where('method', 'cash')->sum('amount'),
-                'bank' => (float) $payments->where('method', 'bank_transfer')->sum('amount'),
+                'cash' => (float) $payments->where('method', 'cash')->sum($baseAmount),
+                'bank' => (float) $payments->where('method', 'bank_transfer')->sum($baseAmount),
             ],
         ]);
     }
@@ -41,7 +42,7 @@ class InvoicePaymentController extends Controller
         $validated = $request->validate([
             'payment_date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:'.$invoice->balance_due],
-            'method' => ['required', Rule::in(['cash', 'bank_transfer', 'card', 'cheque', 'online'])],
+            'method' => ['required', Rule::in(['cash', 'bank_transfer', 'card', 'cheque', 'online', 'deposit'])],
             'reference' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ]);

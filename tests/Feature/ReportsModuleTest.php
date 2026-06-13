@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\MaintenanceLog;
@@ -30,6 +31,10 @@ it('shows revenue utilization customer and maintenance reports for the selected 
         ->assertSee('250.00')
         ->assertSee('375.00')
         ->assertSee('125.00')
+        ->assertSee('Profitability')
+        ->assertSee('Net Profit')
+        ->assertSee('420.00')
+        ->assertSee('67.20%')
         ->assertSee('Returned');
 });
 
@@ -151,6 +156,26 @@ function createReportsTenant(string $email = 'reports-owner@example.com', string
         'cost' => 125,
         'downtime_hours' => 2,
         'affects_availability' => true,
+    ]);
+
+    Expense::create([
+        'company_id' => $company->id,
+        'rental_id' => $rental->id,
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'created_by' => $user->id,
+        'expense_number' => 'EXP-RPT-001',
+        'category' => 'fuel',
+        'expense_date' => '2026-09-06',
+        'vendor_name' => 'Fuel Depot',
+        'payment_status' => 'paid',
+        'payment_method' => 'card',
+        'currency' => 'USD',
+        'amount' => 80,
+        'tax_amount' => 0,
+        'total_amount' => 80,
+        'is_billable' => false,
+        'recovery_status' => 'not_invoiced',
     ]);
 
     return [$user, $company, $rental];

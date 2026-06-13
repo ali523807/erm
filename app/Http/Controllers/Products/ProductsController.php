@@ -181,11 +181,14 @@ class ProductsController extends Controller
      */
     private function formData(): array
     {
+        $canManageLocations = auth()->user()->hasCurrentCompanyPermission('locations.manage');
+
         return [
             'categories' => Category::orderBy('name')->get(),
-            'branches' => Branch::where('is_active', true)->orderBy('name')->get(),
-            'warehouses' => Warehouse::with('branch')->where('is_active', true)->orderBy('name')->get(),
-            'storageLocations' => StorageLocation::with('warehouse.branch')->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'branches' => $canManageLocations ? Branch::where('is_active', true)->orderBy('name')->get() : collect(),
+            'warehouses' => $canManageLocations ? Warehouse::with('branch')->where('is_active', true)->orderBy('name')->get() : collect(),
+            'storageLocations' => $canManageLocations ? StorageLocation::with('warehouse.branch')->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get() : collect(),
+            'canManageLocations' => $canManageLocations,
             'categoryTemplates' => CategoryAttributeTemplate::orderBy('sort_order')
                 ->orderBy('name')
                 ->get()
@@ -252,6 +255,12 @@ class ProductsController extends Controller
             'condition' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if (! auth()->user()->hasCurrentCompanyPermission('locations.manage')) {
+            $validated['branch_id'] = null;
+            $validated['warehouse_id'] = null;
+            $validated['storage_location_id'] = null;
+        }
 
         $validated['acquisition_cost'] = $validated['acquisition_cost'] ?? 0;
         $validated['replacement_value'] = $validated['replacement_value'] ?? 0;

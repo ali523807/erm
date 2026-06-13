@@ -3,57 +3,64 @@
 @section('title', 'Register')
 
 @section('content')
-    <div class="space-y-2 text-center">
-        <h1 class="text-xl font-medium">Create an account</h1>
-        <p class="text-center text-sm text-muted mb-4">Enter your details below to create your account</p>
+    <div class="auth-card-header">
+        <span class="auth-icon">
+            <x-lucide-building-2 class="w-5 h-5"/>
+        </span>
+        <span class="eyebrow">Company Registration</span>
+        <h1>Create your rental workspace</h1>
+        <p>Register your company, choose a subscription plan, and start setting up equipment, customers, rentals, and billing.</p>
     </div>
 
-    <div class="">
-        <x-form class="space-y-4" method="POST" action="{{ route('register') }}">
-            <input type="hidden" name="plan" value="{{ old('plan', $selectedPlan?->slug) }}">
+    <x-form class="auth-form" method="POST" action="{{ route('register') }}">
+        <input type="hidden" name="plan" value="{{ old('plan', $selectedPlan?->slug) }}">
 
-            @if($selectedPlan)
-                <div class="selected-plan-card">
-                    <div>
-                        <span class="eyebrow">Selected Plan</span>
-                        <strong>{{ $selectedPlan->name }}</strong>
-                        <p>{{ $selectedPlan->description }}</p>
-                    </div>
-                    <div class="selected-plan-price">
-                        <strong>${{ number_format($selectedPlan->monthly_price, 0) }}</strong>
-                        <span>/ month</span>
+        @if($selectedPlan)
+            <div class="selected-plan-card">
+                <div>
+                    <span class="eyebrow">Selected Plan</span>
+                    <strong>{{ $selectedPlan->name }}</strong>
+                    <p>{{ $selectedPlan->description }}</p>
+                    <div class="selected-plan-meta">
+                        <span>{{ $selectedPlan->user_limit ? number_format($selectedPlan->user_limit).' users' : 'Unlimited users' }}</span>
+                        <span>{{ $selectedPlan->equipment_limit ? number_format($selectedPlan->equipment_limit).' equipment' : 'Unlimited equipment' }}</span>
                     </div>
                 </div>
-            @endif
+                <div class="selected-plan-price">
+                    <strong>${{ number_format($selectedPlan->monthly_price, 0) }}</strong>
+                    <span>/ month</span>
+                </div>
+            </div>
+        @endif
 
-            <x-input placeholder="Full name" label="Name" name="name" id="name"/>
+        <div class="auth-form-grid">
+            <x-input placeholder="Avery Stone" label="Full Name" name="name" id="name"/>
 
-            <x-input placeholder="Your rental company" label="Company Name" name="company_name" id="company_name"/>
+            <x-input placeholder="Northstar Rentals" label="Company Name" name="company_name" id="company_name"/>
+        </div>
 
-            <x-input placeholder="email@example.com" type="email" label="E-mail Address" name="email" id="email"/>
+        <x-input placeholder="owner@company.com" type="email" label="E-mail Address" name="email" id="email"/>
 
+        <div class="auth-form-grid">
             <x-input placeholder="Password" type="password" label="Password" name="password" id="password"/>
 
             <x-input label="Confirm Password" placeholder="Confirm New Password" type="password"
                      name="password_confirmation" id="password_confirmation"/>
+        </div>
 
+        <x-button type="submit" color="dark" class="w-100 auth-submit">
+            <x-lucide-rocket class="w-4 h-4"/>
+            Create Workspace
+        </x-button>
 
-            <x-button type="submit" color="dark" class="w-100 mt-4">Create Account</x-button>
+        <div class="auth-switch">
+            <span>Already have an account?</span>
+            <a wire:navigate href="{{ route('login') }}">Login</a>
+        </div>
 
-
-            <div class="text-center text-sm text-muted mt-4 authentication"> Already have an account?
-                <a wire:navigate class="text-decoration-underline text-gray-800" href="{{ route('login') }}">
-                    Log in
-                </a>
-            </div>
-
-            <div class="text-center text-sm text-muted authentication">
-                Want another plan?
-                <a wire:navigate class="text-decoration-underline text-gray-800" href="{{ route('landing') }}#pricing">
-                    View pricing
-                </a>
-            </div>
-
-        </x-form>
-    </div>
+        <div class="auth-switch secondary">
+            <span>Want another plan?</span>
+            <a wire:navigate href="{{ route('landing') }}#pricing">View pricing</a>
+        </div>
+    </x-form>
 @endsection

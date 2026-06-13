@@ -92,13 +92,24 @@ class RentalsController extends Controller
 
     public function show(Rental $rental): View
     {
-        $rental->load(['customer', 'quote', 'invoice', 'agreement', 'rentalItems.product.category']);
+        $rental->load([
+            'customer',
+            'quote',
+            'invoice.payments',
+            'invoice.creditNotes',
+            'agreement.returnInspections',
+            'rentalItems.product.category',
+            'depositTransactions.invoice',
+            'depositTransactions.creator',
+            'expenses.invoice',
+        ]);
 
         return view('rentals.show', [
             'rental' => $rental,
             'statuses' => $this->statuses,
             'totals' => $this->totals($rental),
             'nextStatuses' => $this->nextStatuses($rental->status),
+            'closeOutChecklist' => $this->closeOutChecklist($rental),
         ]);
     }
 
@@ -142,6 +153,22 @@ class RentalsController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(array_keys($this->statuses))],
         ]);
+
+        if ($validated['status'] !== $rental->status && ! array_key_exists($validated['status'], $this->nextStatuses($rental->status))) {
+            throw ValidationException::withMessages([
+                'status' => 'This rental cannot move from '.$this->statusLabel($rental->status).' to '.$this->statusLabel($validated['status']).'.',
+            ]);
+        }
+
+        if ($validated['status'] === 'closed') {
+            $checklist = $this->closeOutChecklist($rental);
+
+            if (! $checklist['canClose']) {
+                throw ValidationException::withMessages([
+                    'status' => 'Resolve close-out items before closing: '.collect($checklist['blockingItems'])->pluck('label')->join(', '),
+                ]);
+            }
+        }
 
         $oldStatus = $rental->status;
         $rental->update($validated);
@@ -333,6 +360,106 @@ class RentalsController extends Controller
             'returned' => collect($this->statuses)->only(['closed'])->all(),
             default => [],
         };
+    }
+
+    /**
+     * @return array{items: array<int, array{key: string, label: string, help: string, passed: bool, blocking: bool}>, canClose: bool, blockingItems: array<int, array{key: string, label: string, help: string, passed: bool, blocking: bool}>, passedCount: int, totalCount: int}
+     */
+    private function closeOutChecklist(Rental $rental): array
+    {
+        $rental->loadMissing([
+            'invoice.payments',
+            'invoice.creditNotes',
+            'agreement.returnInspections',
+            'rentalItems',
+            'depositTransactions',
+            'expenses.invoice',
+        ]);
+
+        $itemsReturned = $rental->status === 'returned'
+            && $rental->rentalItems->isNotEmpty()
+            && $rental->rentalItems->every(fn ($item): bool => $item->status === 'returned');
+        $invoice = $rental->invoice;
+        $invoiceSettled = $invoice && (float) $invoice->balance_due <= 0;
+        $unbilledBillableExpenses = $rental->expenses
+            ->where('is_billable', true)
+            ->where('recovery_status', 'not_invoiced')
+            ->count();
+        $depositHeld = $rental->depositHeldAmount();
+        $agreement = $rental->agreement;
+        $returnInspectionsRequired = $agreement !== null;
+        $returnInspectionsComplete = ! $returnInspectionsRequired
+            || $agreement->returnInspections->count() >= $rental->rentalItems->count();
+
+        $items = [
+            [
+                'key' => 'equipment_returned',
+                'label' => 'Equipment returned',
+                'help' => 'All rental assets must be marked returned before close-out.',
+                'passed' => $itemsReturned,
+                'blocking' => true,
+            ],
+            [
+                'key' => 'invoice_generated',
+                'label' => 'Invoice generated',
+                'help' => 'Create the final customer invoice from this rental.',
+                'passed' => $invoice !== null,
+                'blocking' => true,
+            ],
+            [
+                'key' => 'invoice_settled',
+                'label' => 'Invoice settled',
+                'help' => 'The linked invoice must have no remaining balance due.',
+                'passed' => (bool) $invoiceSettled,
+                'blocking' => true,
+            ],
+            [
+                'key' => 'billable_expenses_reviewed',
+                'label' => 'Billable expenses reviewed',
+                'help' => 'Add billable rental expenses to the invoice or mark them non-billable before closing.',
+                'passed' => $unbilledBillableExpenses === 0,
+                'blocking' => true,
+            ],
+            [
+                'key' => 'deposit_settled',
+                'label' => 'Security deposit settled',
+                'help' => 'Refund the held deposit or apply it to the invoice before close-out.',
+                'passed' => $depositHeld <= 0,
+                'blocking' => true,
+            ],
+            [
+                'key' => 'return_signoff',
+                'label' => 'Return sign-off',
+                'help' => $agreement ? 'Customer return acceptance should be recorded on the agreement.' : 'No agreement is linked to this direct rental.',
+                'passed' => ! $agreement || ($agreement->status === 'returned' && $agreement->customer_accepted_return),
+                'blocking' => $agreement !== null,
+            ],
+            [
+                'key' => 'return_inspection',
+                'label' => 'Return inspection',
+                'help' => $agreement ? 'Record return inspection results for each rental asset.' : 'No agreement inspection record is linked to this direct rental.',
+                'passed' => $returnInspectionsComplete,
+                'blocking' => $returnInspectionsRequired,
+            ],
+        ];
+
+        $blockingItems = collect($items)
+            ->filter(fn (array $item): bool => $item['blocking'] && ! $item['passed'])
+            ->values()
+            ->all();
+
+        return [
+            'items' => $items,
+            'canClose' => $blockingItems === [],
+            'blockingItems' => $blockingItems,
+            'passedCount' => collect($items)->where('passed', true)->count(),
+            'totalCount' => count($items),
+        ];
+    }
+
+    private function statusLabel(?string $status): string
+    {
+        return $this->statuses[$status] ?? str($status ?: 'unknown')->headline()->toString();
     }
 
     private function itemStatusForRental(string $status): string

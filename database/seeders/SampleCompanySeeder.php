@@ -8,12 +8,18 @@ use App\Models\Category;
 use App\Models\CategoryAttributeTemplate;
 use App\Models\Company;
 use App\Models\CompanySubscription;
+use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\CustomerPortalUser;
+use App\Models\DepositTransaction;
 use App\Models\Document;
+use App\Models\DocumentDelivery;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
+use App\Models\InvoicePaymentLink;
 use App\Models\MaintenanceLog;
+use App\Models\PaymentGatewaySetting;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductDocument;
@@ -24,6 +30,7 @@ use App\Models\RentalAgreement;
 use App\Models\RentalItem;
 use App\Models\StorageLocation;
 use App\Models\SubscriptionPlan;
+use App\Models\TaxProfile;
 use App\Models\TenantNotification;
 use App\Models\User;
 use App\Models\Warehouse;
@@ -83,8 +90,8 @@ class SampleCompanySeeder extends Seeder
 
         $this->createTeamMembers($company);
 
-        $plan = SubscriptionPlan::where('slug', 'business')->first()
-            ?? SubscriptionPlan::orderByDesc('monthly_price')->first();
+        $plan = SubscriptionPlan::where('slug', 'starter')->first()
+            ?? SubscriptionPlan::orderBy('monthly_price')->first();
 
         if ($plan) {
             CompanySubscription::create([
@@ -97,11 +104,13 @@ class SampleCompanySeeder extends Seeder
                 'current_period_starts_at' => now()->startOfMonth(),
                 'current_period_ends_at' => now()->endOfMonth(),
                 'next_billing_at' => now()->addMonth()->startOfMonth(),
-                'notes' => 'Sample active subscription for platform testing.',
+                'notes' => 'Sample starter subscription for module access testing.',
             ]);
         }
 
         [$houstonBranch, $dubaiBranch] = $this->createLocations($company);
+        $this->createTaxProfiles($company);
+        $this->createPaymentGatewaySettings($company);
         [$generatorCategory, $vehicleCategory, $eventCategory, $cameraCategory] = $this->createCategories($company);
 
         $equipment = $this->createEquipment(
@@ -120,8 +129,12 @@ class SampleCompanySeeder extends Seeder
         $customers = $this->createCustomers($company);
         $rentals = $this->createRentals($company, $customers, $equipment);
         $this->createInvoices($company, $rentals);
+        $this->createDeposits($company, $rentals, $user);
+        $this->createExpenses($company, $rentals, $equipment, $user);
+        $this->createPaymentLinks($company, $user);
         $this->createAgreements($company, $rentals);
         $this->createQuotes($company, $customers, $equipment);
+        $this->createDocumentDeliveries($company, $user);
         $this->createDocumentsCenter($company, $user, $customers, $equipment, $rentals);
         $this->createCustomerPortalUsers($company, $customers);
         $this->createActivityLogs($company, $user);
@@ -131,6 +144,10 @@ class SampleCompanySeeder extends Seeder
     private function clearTenantData(Company $company): void
     {
         InvoicePayment::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        Expense::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        DepositTransaction::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        InvoicePaymentLink::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        CreditNote::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Invoice::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         RentalAgreement::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         QuoteItem::withoutGlobalScopes()->where('company_id', $company->id)->delete();
@@ -143,6 +160,8 @@ class SampleCompanySeeder extends Seeder
         Product::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         CategoryAttributeTemplate::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Category::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        TaxProfile::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        PaymentGatewaySetting::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Customer::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         StorageLocation::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Warehouse::withoutGlobalScopes()->where('company_id', $company->id)->delete();
@@ -151,7 +170,89 @@ class SampleCompanySeeder extends Seeder
         ActivityLog::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         TenantNotification::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         Document::withoutGlobalScopes()->where('company_id', $company->id)->delete();
+        DocumentDelivery::withoutGlobalScopes()->where('company_id', $company->id)->delete();
         CustomerPortalUser::where('company_id', $company->id)->delete();
+    }
+
+    private function createDocumentDeliveries(Company $company, User $user): void
+    {
+        $invoice = Invoice::withoutGlobalScopes()
+            ->with('customer')
+            ->where('company_id', $company->id)
+            ->where('invoice_number', 'INV-2026-0001')
+            ->first();
+        $quote = Quote::withoutGlobalScopes()
+            ->with('customer')
+            ->where('company_id', $company->id)
+            ->where('quote_number', 'QTE-2026-0001')
+            ->first();
+
+        foreach (array_filter([$invoice, $quote]) as $document) {
+            $number = $document instanceof Invoice ? $document->invoice_number : $document->quote_number;
+            $type = $document instanceof Invoice ? 'invoice' : 'quote';
+
+            DocumentDelivery::withoutGlobalScopes()->create([
+                'company_id' => $company->id,
+                'sent_by' => $user->id,
+                'deliverable_type' => $document::class,
+                'deliverable_id' => $document->id,
+                'type' => $type,
+                'recipient_email' => $document->customer?->email ?? 'customer@example.test',
+                'recipient_name' => $document->customer?->contact_person,
+                'subject' => str($type)->headline().' '.$number,
+                'message' => 'Sample delivery record generated by the demo seeder.',
+                'attachment_name' => $number.'.pdf',
+                'status' => 'sent',
+                'sent_at' => now()->subHours($type === 'invoice' ? 6 : 18),
+                'metadata' => ['source' => 'sample_seeder'],
+            ]);
+        }
+    }
+
+    private function createPaymentLinks(Company $company, User $user): void
+    {
+        $invoice = Invoice::withoutGlobalScopes()
+            ->where('company_id', $company->id)
+            ->where('invoice_number', 'INV-2026-0001')
+            ->first();
+
+        if (! $invoice || (float) $invoice->balance_due <= 0) {
+            return;
+        }
+
+        InvoicePaymentLink::withoutGlobalScopes()->create([
+            'company_id' => $company->id,
+            'invoice_id' => $invoice->id,
+            'created_by' => $user->id,
+            'token' => Str::random(48),
+            'amount' => $invoice->balance_due,
+            'currency' => $invoice->currency,
+            'status' => 'active',
+            'provider' => 'manual',
+            'expires_at' => now()->addDays(7),
+            'metadata' => ['source' => 'sample_seeder'],
+        ]);
+    }
+
+    private function createPaymentGatewaySettings(Company $company): void
+    {
+        foreach ([
+            ['manual', 'test', true, null],
+            ['stripe', 'test', false, 'pk_test_demo_global_rentals'],
+            ['razorpay', 'test', false, 'rzp_test_demo_global_rentals'],
+            ['paypal', 'test', false, 'paypal-demo-client-id'],
+        ] as [$provider, $mode, $isActive, $publicKey]) {
+            PaymentGatewaySetting::withoutGlobalScopes()->create([
+                'company_id' => $company->id,
+                'provider' => $provider,
+                'mode' => $mode,
+                'is_active' => $isActive,
+                'public_key' => $publicKey,
+                'secret_key' => $provider === 'manual' ? null : 'demo-secret-not-for-production',
+                'webhook_secret' => $provider === 'manual' ? null : 'demo-webhook-secret',
+                'account_reference' => $provider === 'manual' ? 'Demo collection flow' : strtoupper($provider).'-DEMO',
+            ]);
+        }
     }
 
     /**
@@ -292,6 +393,31 @@ class SampleCompanySeeder extends Seeder
                 ],
             ]);
         }
+    }
+
+    private function createTaxProfiles(Company $company): void
+    {
+        TaxProfile::create([
+            'company_id' => $company->id,
+            'name' => 'Sales Tax 8.25%',
+            'code' => 'SALES',
+            'country' => 'US',
+            'rate' => 8.25,
+            'is_default' => true,
+            'is_active' => true,
+            'description' => 'Default domestic sales tax for the demo company.',
+        ]);
+
+        TaxProfile::create([
+            'company_id' => $company->id,
+            'name' => 'Zero Rated Export',
+            'code' => 'ZERO',
+            'country' => null,
+            'rate' => 0,
+            'is_default' => false,
+            'is_active' => true,
+            'description' => 'Use for zero-rated or export rental invoices.',
+        ]);
     }
 
     /**
@@ -818,7 +944,11 @@ class SampleCompanySeeder extends Seeder
             'company_id' => $company->id,
             'rental_id' => $rentals['construction']->id,
             'customer_id' => $rentals['construction']->customer_id,
+            'tax_profile_id' => TaxProfile::where('company_id', $company->id)->where('is_default', true)->value('id'),
             'invoice_number' => 'INV-2026-0001',
+            'currency' => $company->currency,
+            'base_currency' => $company->currency,
+            'exchange_rate' => 1,
             'invoice_date' => now()->subDay()->format('Y-m-d'),
             'due_date' => now()->addDays(13)->format('Y-m-d'),
             'status' => 'issued',
@@ -844,7 +974,143 @@ class SampleCompanySeeder extends Seeder
             'notes' => 'Advance deposit.',
         ]);
 
+        CreditNote::create([
+            'company_id' => $company->id,
+            'invoice_id' => $constructionInvoice->id,
+            'customer_id' => $constructionInvoice->customer_id,
+            'credit_note_number' => 'CRN-2026-0001',
+            'credit_date' => now()->format('Y-m-d'),
+            'reason' => 'discount_adjustment',
+            'amount' => 150,
+            'refund_amount' => 0,
+            'status' => 'applied',
+            'notes' => 'Sample goodwill credit for consolidated demo billing.',
+        ]);
+
         $constructionInvoice->recalculateTotals();
+    }
+
+    /**
+     * @param  array<string, Rental>  $rentals
+     */
+    private function createDeposits(Company $company, array $rentals, User $user): void
+    {
+        $invoice = Invoice::withoutGlobalScopes()
+            ->where('company_id', $company->id)
+            ->where('invoice_number', 'INV-2026-0001')
+            ->first();
+
+        DepositTransaction::withoutGlobalScopes()->create([
+            'company_id' => $company->id,
+            'rental_id' => $rentals['construction']->id,
+            'customer_id' => $rentals['construction']->customer_id,
+            'created_by' => $user->id,
+            'type' => 'collected',
+            'transaction_date' => now()->subDays(3)->format('Y-m-d'),
+            'amount' => 1500,
+            'payment_method' => 'bank_transfer',
+            'reference' => 'ACH-DEMO-1001',
+            'notes' => 'Full security deposit collected before generator and pickup dispatch.',
+            'metadata' => ['source' => 'sample_seeder'],
+        ]);
+
+        if ($invoice && (float) $invoice->balance_due > 0) {
+            DepositTransaction::withoutGlobalScopes()->create([
+                'company_id' => $company->id,
+                'rental_id' => $rentals['construction']->id,
+                'customer_id' => $rentals['construction']->customer_id,
+                'invoice_id' => $invoice->id,
+                'created_by' => $user->id,
+                'type' => 'applied',
+                'transaction_date' => now()->subDay()->format('Y-m-d'),
+                'amount' => 250,
+                'payment_method' => 'deposit',
+                'reference' => 'DEP-DEMO-APPLIED',
+                'notes' => 'Sample deposit settlement applied to the open invoice balance.',
+                'metadata' => ['source' => 'sample_seeder'],
+            ]);
+        }
+
+        DepositTransaction::withoutGlobalScopes()->create([
+            'company_id' => $company->id,
+            'rental_id' => $rentals['event']->id,
+            'customer_id' => $rentals['event']->customer_id,
+            'created_by' => $user->id,
+            'type' => 'collected',
+            'transaction_date' => now()->subDay()->format('Y-m-d'),
+            'amount' => 150,
+            'payment_method' => 'card',
+            'reference' => 'CARD-DEMO-8842',
+            'notes' => 'Partial event equipment deposit collected with booking.',
+            'metadata' => ['source' => 'sample_seeder'],
+        ]);
+    }
+
+    /**
+     * @param  array<string, Rental>  $rentals
+     * @param  array<string, Product>  $equipment
+     */
+    private function createExpenses(Company $company, array $rentals, array $equipment, User $user): void
+    {
+        foreach ([
+            [
+                'expense_number' => 'EXP-2026-0001',
+                'category' => 'fuel',
+                'expense_date' => now()->subDays(2)->format('Y-m-d'),
+                'vendor_name' => 'Harbor Fuel Station',
+                'payment_status' => 'paid',
+                'payment_method' => 'card',
+                'reference' => 'FUEL-8841',
+                'amount' => 220,
+                'tax_amount' => 18.15,
+                'rental_id' => $rentals['construction']->id,
+                'customer_id' => $rentals['construction']->customer_id,
+                'product_id' => $equipment['generator']->id,
+                'is_billable' => false,
+                'description' => 'Generator fuel top-up before dispatch.',
+            ],
+            [
+                'expense_number' => 'EXP-2026-0002',
+                'category' => 'transport',
+                'expense_date' => now()->subDay()->format('Y-m-d'),
+                'vendor_name' => 'City Logistics',
+                'payment_status' => 'unpaid',
+                'payment_method' => null,
+                'reference' => 'TRN-1029',
+                'amount' => 480,
+                'tax_amount' => 39.60,
+                'rental_id' => $rentals['construction']->id,
+                'customer_id' => $rentals['construction']->customer_id,
+                'product_id' => $equipment['pickup']->id,
+                'is_billable' => true,
+                'description' => 'Site delivery and pickup coordination charge.',
+            ],
+            [
+                'expense_number' => 'EXP-2026-0003',
+                'category' => 'cleaning',
+                'expense_date' => now()->format('Y-m-d'),
+                'vendor_name' => 'Blue Palm Crew',
+                'payment_status' => 'paid',
+                'payment_method' => 'cash',
+                'reference' => 'CLEAN-118',
+                'amount' => 75,
+                'tax_amount' => 0,
+                'rental_id' => $rentals['event']->id,
+                'customer_id' => $rentals['event']->customer_id,
+                'product_id' => $equipment['tables']->id,
+                'is_billable' => false,
+                'description' => 'Event table cleaning and packing.',
+            ],
+        ] as $expense) {
+            Expense::withoutGlobalScopes()->create([
+                ...$expense,
+                'company_id' => $company->id,
+                'created_by' => $user->id,
+                'currency' => $company->currency,
+                'total_amount' => (float) $expense['amount'] + (float) $expense['tax_amount'],
+                'metadata' => ['source' => 'sample_seeder'],
+            ]);
+        }
     }
 
     /**
@@ -883,6 +1149,9 @@ class SampleCompanySeeder extends Seeder
             'company_id' => $company->id,
             'customer_id' => $customers[1]->id,
             'quote_number' => 'QTE-2026-0001',
+            'currency' => $company->currency,
+            'base_currency' => $company->currency,
+            'exchange_rate' => 1,
             'quote_date' => now()->format('Y-m-d'),
             'valid_until' => now()->addDays(14)->format('Y-m-d'),
             'rental_start_date' => now()->addDays(20)->format('Y-m-d'),
@@ -893,6 +1162,7 @@ class SampleCompanySeeder extends Seeder
             'discount_amount' => 0,
             'tax_amount' => 18,
             'total_amount' => 378,
+            'base_total_amount' => 378,
             'terms' => '50% advance payment required. Customer is responsible for insurance and safe handling during rental.',
             'notes' => 'Sample quote for event equipment booking flow.',
         ]);

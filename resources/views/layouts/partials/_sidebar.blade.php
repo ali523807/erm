@@ -163,6 +163,30 @@
                         <span>Payments</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item">
+                    <a href="{{ route('expenses.index') }}" wire:navigate
+                       class="sidebar-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                        <x-lucide-receipt class="w-4 h-4"/>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="{{ route('deposits.index') }}" wire:navigate
+                       class="sidebar-link {{ request()->routeIs('deposits.*') ? 'active' : '' }}">
+                        <x-lucide-wallet class="w-4 h-4"/>
+                        <span>Deposits</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="{{ route('credit-notes.index') }}" wire:navigate
+                       class="sidebar-link {{ request()->routeIs('credit-notes.*') ? 'active' : '' }}">
+                        <x-lucide-receipt-text class="w-4 h-4"/>
+                        <span>Credit Notes</span>
+                    </a>
+                </li>
             @endif
 
             @if($currentUser->hasCurrentCompanyPermission('reports.view') || $currentUser->hasCurrentCompanyPermission('roles.manage'))
@@ -209,6 +233,14 @@
                        class="sidebar-link {{ request()->routeIs('documents.*') ? 'active' : '' }}">
                         <x-lucide-folder-open class="w-4 h-4"/>
                         <span>Documents</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="{{ route('document-deliveries.index') }}" wire:navigate
+                       class="sidebar-link {{ request()->routeIs('document-deliveries.*') ? 'active' : '' }}">
+                        <x-lucide-send class="w-4 h-4"/>
+                        <span>Delivery Log</span>
                     </a>
                 </li>
             @endif

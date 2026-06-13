@@ -3,6 +3,7 @@
 @section('title', $product->name)
 
 @php
+    $canManageLocations = auth()->user()->hasCurrentCompanyPermission('locations.manage');
     $locationPath = collect([
         $product->branch?->name,
         $product->warehouse?->name,
@@ -108,16 +109,18 @@
                 <section class="panel h-100">
                     <div class="panel-header align-items-start">
                         <div>
-                            <h2>Location and Dates</h2>
-                            <p>Where this asset belongs and the key lifecycle dates.</p>
+                            <h2>{{ $canManageLocations ? 'Location and Dates' : 'Lifecycle Dates' }}</h2>
+                            <p>{{ $canManageLocations ? 'Where this asset belongs and the key lifecycle dates.' : 'Key lifecycle dates for warranty, certificates, and fleet tracking.' }}</p>
                         </div>
                     </div>
 
                     <dl class="detail-grid">
-                        <div>
-                            <dt>Location</dt>
-                            <dd>{{ $locationPath }}</dd>
-                        </div>
+                        @if($canManageLocations)
+                            <div>
+                                <dt>Location</dt>
+                                <dd>{{ $locationPath }}</dd>
+                            </div>
+                        @endif
                         <div>
                             <dt>Active</dt>
                             <dd>{{ $product->active ? 'Yes' : 'No' }}</dd>

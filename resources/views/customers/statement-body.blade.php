@@ -1,6 +1,7 @@
 @php
     $printMode = $printMode ?? false;
-    $money = fn ($amount): string => number_format((float) $amount, 2);
+    $money = app(\App\Support\Money::class);
+    $statementCurrency = $customer->company?->currency ?? auth()->user()?->currentCompany?->currency;
     $agingLabels = [
         'current' => 'Current',
         'days_1_30' => '1-30 Days',
@@ -14,13 +15,14 @@
     @foreach([
         ['label' => 'Invoice Total', 'value' => $summary['invoiceTotal'], 'note' => 'All invoices in period'],
         ['label' => 'Paid', 'value' => $summary['paidTotal'], 'note' => 'Payments received'],
+        ['label' => 'Credits', 'value' => $summary['creditTotal'], 'note' => 'Credit notes issued'],
         ['label' => 'Balance Due', 'value' => $summary['balanceDue'], 'note' => $summary['openInvoices'].' open invoices'],
         ['label' => 'As Of', 'value' => $asOfDate->format('Y-m-d'), 'note' => $fromDate ? 'From '.$fromDate->format('Y-m-d') : 'Full customer history', 'raw' => true],
     ] as $card)
-        <div class="{{ $printMode ? 'statement-card' : 'col-md-3' }}">
+        <div class="{{ $printMode ? 'statement-card' : 'col-md' }}">
             <section class="{{ $printMode ? 'box' : 'panel h-100' }}">
                 <span class="eyebrow">{{ $card['label'] }}</span>
-                <h2 class="mb-0">{{ ($card['raw'] ?? false) ? $card['value'] : $money($card['value']) }}</h2>
+                <h2 class="mb-0">{{ ($card['raw'] ?? false) ? $card['value'] : $money->format($card['value'], $statementCurrency) }}</h2>
                 <p class="text-muted mb-0">{{ $card['note'] }}</p>
             </section>
         </div>
@@ -47,9 +49,9 @@
             <tbody>
             <tr>
                 @foreach(array_keys($agingLabels) as $bucket)
-                    <td>{{ $money($aging[$bucket]) }}</td>
+                    <td>{{ $money->format($aging[$bucket], $statementCurrency) }}</td>
                 @endforeach
-                <td><strong>{{ $money(array_sum($aging)) }}</strong></td>
+                <td><strong>{{ $money->format(array_sum($aging), $statementCurrency) }}</strong></td>
             </tr>
             </tbody>
         </table>
@@ -89,9 +91,9 @@
                     <td>{{ $invoice->invoice_date?->format('Y-m-d') ?: '-' }}</td>
                     <td>{{ $invoice->due_date?->format('Y-m-d') ?: '-' }}</td>
                     <td><span class="badge badge-soft-secondary">{{ str($invoice->status)->headline() }}</span></td>
-                    <td class="text-end">{{ $money($invoice->total_amount) }}</td>
-                    <td class="text-end">{{ $money($invoice->paid_amount) }}</td>
-                    <td class="text-end">{{ $money($invoice->balance_due) }}</td>
+                    <td class="text-end">{{ $money->format($invoice->total_amount, $invoice->currency) }}</td>
+                    <td class="text-end">{{ $money->format($invoice->paid_amount, $invoice->currency) }}</td>
+                    <td class="text-end">{{ $money->format($invoice->balance_due, $invoice->currency) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="7" class="text-center text-muted py-4">No invoices found for this statement period.</td></tr>
@@ -133,8 +135,8 @@
                         @endif
                     </td>
                     <td>{{ $transaction['description'] }}</td>
-                    <td class="text-end">{{ $transaction['debit'] > 0 ? $money($transaction['debit']) : '-' }}</td>
-                    <td class="text-end">{{ $transaction['credit'] > 0 ? $money($transaction['credit']) : '-' }}</td>
+                    <td class="text-end">{{ $transaction['debit'] > 0 ? $money->format($transaction['debit'], $statementCurrency) : '-' }}</td>
+                    <td class="text-end">{{ $transaction['credit'] > 0 ? $money->format($transaction['credit'], $statementCurrency) : '-' }}</td>
                 </tr>
             @empty
                 <tr><td colspan="6" class="text-center text-muted py-4">No transactions found for this statement period.</td></tr>

@@ -9,6 +9,18 @@
                         Company Setup
                     </a>
                 </li>
+                <li class="sidebar-item">
+                    <a href="{{ route('settings.tax-profiles') }}" class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('settings.tax-profiles*') ? 'active' : '' }}"
+                       wire:navigate>
+                        Tax Profiles
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{{ route('settings.payment-gateways') }}" class="sidebar-link text-gray-600 font-bold {{ request()->routeIs('settings.payment-gateways*') ? 'active' : '' }}"
+                       wire:navigate>
+                        Payment Gateways
+                    </a>
+                </li>
             @endif
             @if($currentUser->hasCurrentCompanyPermission('locations.manage'))
                 <li class="sidebar-item">

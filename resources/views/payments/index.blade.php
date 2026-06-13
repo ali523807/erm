@@ -3,6 +3,7 @@
 @section('title', 'Payments')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -20,7 +21,7 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Collected</span>
-                    <h2 class="mb-0">{{ number_format($summary['total'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['total']) }}</h2>
                     <p class="text-muted mb-0">Total receipts</p>
                 </section>
             </div>
@@ -34,14 +35,14 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Cash</span>
-                    <h2 class="mb-0">{{ number_format($summary['cash'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['cash']) }}</h2>
                     <p class="text-muted mb-0">Cash collected</p>
                 </section>
             </div>
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Bank</span>
-                    <h2 class="mb-0">{{ number_format($summary['bank'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['bank']) }}</h2>
                     <p class="text-muted mb-0">Transfers received</p>
                 </section>
             </div>
@@ -83,7 +84,7 @@
                             </td>
                             <td><span class="badge badge-soft-secondary">{{ str($payment->method)->headline() }}</span></td>
                             <td>{{ $payment->reference ?: '-' }}</td>
-                            <td>{{ number_format((float) $payment->amount, 2) }}</td>
+                            <td>{{ $money->format($payment->amount, $payment->invoice?->currency) }}</td>
                             <td>
                                 <div class="table-actions justify-content-end">
                                 @if($payment->invoice)

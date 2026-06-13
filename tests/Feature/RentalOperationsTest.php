@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Rental;
 use App\Models\User;
@@ -61,6 +62,75 @@ it('moves rentals through the operations status workflow', function () {
 
     expect($rental->refresh()->status)->toBe('returned')
         ->and($rental->rentalItems()->first()->status)->toBe('returned');
+});
+
+it('requires close-out checklist before closing a rental', function () {
+    [$user, , $customer, $product] = rentalOpsTenant('rental-closeout@example.com', 'Rental Closeout Co');
+
+    $this->actingAs($user)
+        ->post(route('rentals.store'), rentalOpsPayload($customer, $product))
+        ->assertRedirect();
+
+    $rental = Rental::with('rentalItems')->first();
+
+    $this->actingAs($user)
+        ->patch(route('rentals.status.update', $rental), ['status' => 'active'])
+        ->assertRedirect(route('rentals.show', $rental));
+
+    $this->actingAs($user)
+        ->patch(route('rentals.status.update', $rental), ['status' => 'returned'])
+        ->assertRedirect(route('rentals.show', $rental));
+
+    $this->actingAs($user)
+        ->get(route('rentals.show', $rental))
+        ->assertOk()
+        ->assertSee('Close-Out Checklist')
+        ->assertSee('Invoice generated');
+
+    $this->actingAs($user)
+        ->patch(route('rentals.status.update', $rental), ['status' => 'closed'])
+        ->assertSessionHasErrors('status');
+
+    expect($rental->refresh()->status)->toBe('returned');
+
+    $this->actingAs($user)
+        ->post(route('rentals.invoices.store', $rental), [
+            'due_date' => now()->addDays(14)->toDateString(),
+        ])
+        ->assertRedirect();
+
+    $invoice = Invoice::firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('invoices.payments.store', $invoice), [
+            'payment_date' => now()->toDateString(),
+            'amount' => $invoice->balance_due,
+            'method' => 'cash',
+        ])
+        ->assertRedirect(route('invoices.show', $invoice));
+
+    $this->actingAs($user)
+        ->patch(route('rentals.status.update', $rental), ['status' => 'closed'])
+        ->assertRedirect(route('rentals.show', $rental));
+
+    expect($rental->refresh()->status)->toBe('closed')
+        ->and($rental->rentalItems()->first()->status)->toBe('returned');
+});
+
+it('prevents invalid rental status jumps', function () {
+    [$user, , $customer, $product] = rentalOpsTenant('rental-jump@example.com', 'Rental Jump Co');
+
+    $this->actingAs($user)
+        ->post(route('rentals.store'), rentalOpsPayload($customer, $product))
+        ->assertRedirect();
+
+    $rental = Rental::firstOrFail();
+
+    $this->actingAs($user)
+        ->patch(route('rentals.status.update', $rental), ['status' => 'closed'])
+        ->assertSessionHasErrors('status');
+
+    expect($rental->refresh()->status)->toBe('reserved');
 });
 
 it('does not allow the same equipment asset twice on one rental', function () {

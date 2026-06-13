@@ -51,6 +51,22 @@
             </form>
         </section>
 
+        @include('document-deliveries._send-form', [
+            'action' => route('customers.statement.send', $customer),
+            'idPrefix' => 'statement_email',
+            'title' => 'Email Statement',
+            'description' => 'Send this filtered statement as a PDF and keep the delivery attempt in the log.',
+            'recipientEmail' => $customer->email,
+            'recipientName' => $customer->contact_person,
+            'subject' => 'Statement - '.$customer->company_name,
+            'message' => 'Please find the attached customer statement for your records.',
+            'hidden' => [
+                'from' => $fromDate?->format('Y-m-d'),
+                'as_of' => $asOfDate->format('Y-m-d'),
+            ],
+            'class' => 'mb-3',
+        ])
+
         @include('customers.statement-body')
     </div>
 @endsection

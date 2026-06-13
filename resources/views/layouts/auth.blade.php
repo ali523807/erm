@@ -12,17 +12,46 @@
 
 <body class="h-100 auth-bg">
 
-<div class="d-flex min-h-full flex-column justify-content-center">
-    <div class="mt-10 mx-auto auth-container px-4">
-        <div class="d-flex align-items-center justify-content-center mb-3">
-            <a href="/">
-               <x-application-logo />
+<main class="auth-shell">
+    <section class="auth-visual" aria-label="ERM Cloud preview">
+        <img src="{{ asset('images/landing-equipment-yard.jpg') }}" alt="Equipment rental yard">
+        <div class="auth-visual-overlay"></div>
+        <div class="auth-visual-content">
+            <a href="{{ route('landing') }}" class="auth-brand">
+                <span class="brand-mark">
+                    <x-lucide-building-2 class="w-5 h-5"/>
+                </span>
+                <span>
+                    <strong>ERM Cloud</strong>
+                    <small>Equipment rental SaaS</small>
+                </span>
             </a>
+            <div>
+                <span class="eyebrow">Rental operations platform</span>
+                <h1>Run every rental company from quote to close-out.</h1>
+                <p>Fleet, customers, quotes, rentals, agreements, invoices, payments, deposits, maintenance, reports, and customer portal access in one workspace.</p>
+            </div>
+            <div class="auth-proof-grid">
+                <div>
+                    <strong>Global ready</strong>
+                    <span>Currency, tax, branches, roles</span>
+                </div>
+                <div>
+                    <strong>Asset based</strong>
+                    <span>Built for equipment, not stock quantity</span>
+                </div>
+            </div>
         </div>
+    </section>
 
-        @yield('content')
-    </div>
-</div>
+    <section class="auth-panel">
+        <div class="auth-container">
+            <div class="auth-card">
+                @yield('content')
+            </div>
+        </div>
+    </section>
+</main>
 @stack('js')
 @livewireScripts
 

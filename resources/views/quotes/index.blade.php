@@ -3,6 +3,7 @@
 @section('title', 'Quotes')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -44,7 +45,10 @@
                             <td>{{ $quote->customer?->company_name ?: 'Unknown customer' }}</td>
                             <td>{{ $quote->rental_start_date?->format('Y-m-d') }} - {{ $quote->rental_end_date?->format('Y-m-d') }}</td>
                             <td><span class="badge badge-soft-secondary">{{ $statuses[$quote->status] ?? str($quote->status)->headline() }}</span></td>
-                            <td>{{ number_format((float) $quote->total_amount, 2) }}</td>
+                            <td>
+                                {{ $money->format($quote->total_amount, $quote->currency) }}
+                                <div class="text-muted text-xs">Base {{ $money->format($quote->base_total_amount, $quote->base_currency) }}</div>
+                            </td>
                             <td>
                                 <div class="table-actions justify-content-end">
                                 <a href="{{ route('quotes.show', $quote) }}" class="btn btn-sm btn-outline-secondary">

@@ -82,6 +82,19 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col-lg-3">
+                <label for="currency" class="form-label">Quote Currency</label>
+                <select id="currency" name="currency" class="form-select">
+                    @foreach($currencies as $code => $label)
+                        <option value="{{ $code }}" @selected($value('currency', auth()->user()->currentCompany?->currency ?? 'USD') === $code)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label for="exchange_rate" class="form-label">Exchange Rate</label>
+                <input id="exchange_rate" name="exchange_rate" type="number" step="0.00000001" min="0.00000001" class="form-control" value="{{ $value('exchange_rate', 1) }}">
+                <div class="form-text">Use 1 quote currency to {{ auth()->user()->currentCompany?->currency ?? 'USD' }}.</div>
+            </div>
         </div>
     </section>
 
@@ -123,6 +136,10 @@
             <div class="col-lg-3">
                 <label class="form-label">Estimated Total</label>
                 <div class="form-control bg-light fw-bold" id="quoteTotal">0.00</div>
+            </div>
+            <div class="col-lg-3">
+                <label class="form-label">Base Total</label>
+                <div class="form-control bg-light fw-bold" id="quoteBaseTotal">0.00</div>
             </div>
             <div class="col-lg-6">
                 <label for="terms" class="form-label">Terms</label>
@@ -241,8 +258,12 @@
             });
             const discount = Number($('#discount_amount').val() || 0);
             const tax = Number($('#tax_amount').val() || 0);
+            const exchangeRate = Number($('#exchange_rate').val() || 1);
+            const baseCurrency = @json(auth()->user()->currentCompany?->currency ?? 'USD');
             $('#quoteSubtotal').text(subtotal.toFixed(2));
-            $('#quoteTotal').text(Math.max(0, subtotal - discount + tax).toFixed(2));
+            const total = Math.max(0, subtotal - discount + tax);
+            $('#quoteTotal').text(`${$('#currency').val()} ${total.toFixed(2)}`);
+            $('#quoteBaseTotal').text(`${baseCurrency} ${(total * exchangeRate).toFixed(2)}`);
         }
 
         $(function () {
@@ -292,7 +313,8 @@
                 calculateTotals();
             });
 
-            $('#quoteItems, #discount_amount, #tax_amount').on('input change', '.quote-calc, input', calculateTotals);
+            $('#quoteItems').on('input change', '.quote-calc, input', calculateTotals);
+            $('#discount_amount, #tax_amount, #exchange_rate, #currency').on('input change', calculateTotals);
         });
     </script>
 @endpush

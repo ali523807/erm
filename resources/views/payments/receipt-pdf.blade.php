@@ -93,10 +93,14 @@
     </style>
 </head>
 <body>
+    @php
+        $money = app(\App\Support\Money::class);
+        $company = auth()->user()?->currentCompany ?? $payment->invoice?->company;
+    @endphp
     <div class="header grid">
         <div class="col">
-            <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
-            <div class="muted">{{ auth()->user()->currentCompany?->email }}</div>
+            <div class="brand">{{ $company?->name ?? 'ERM Cloud' }}</div>
+            <div class="muted">{{ $company?->email }}</div>
         </div>
         <div class="col right">
             <h1>Payment Receipt</h1>
@@ -124,7 +128,7 @@
 
     <div class="amount-box">
         <div class="muted">Amount Received</div>
-        <div class="amount">{{ number_format((float) $payment->amount, 2) }}</div>
+        <div class="amount">{{ $money->format($payment->amount, $payment->invoice?->currency) }}</div>
     </div>
 
     <table>
@@ -139,9 +143,9 @@
         <tbody>
         <tr>
             <td>{{ $payment->invoice?->invoice_number }}</td>
-            <td>{{ number_format((float) $payment->invoice?->total_amount, 2) }}</td>
-            <td>{{ number_format((float) $payment->invoice?->paid_amount, 2) }}</td>
-            <td>{{ number_format((float) $payment->invoice?->balance_due, 2) }}</td>
+            <td>{{ $money->format($payment->invoice?->total_amount, $payment->invoice?->currency) }}</td>
+            <td>{{ $money->format($payment->invoice?->paid_amount, $payment->invoice?->currency) }}</td>
+            <td>{{ $money->format($payment->invoice?->balance_due, $payment->invoice?->currency) }}</td>
         </tr>
         </tbody>
     </table>

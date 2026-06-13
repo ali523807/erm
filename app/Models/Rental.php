@@ -48,4 +48,57 @@ class Rental extends Model
     {
         return $this->hasOne(RentalAgreement::class);
     }
+
+    public function depositTransactions(): HasMany
+    {
+        return $this->hasMany(DepositTransaction::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function depositRequiredAmount(): float
+    {
+        $items = $this->relationLoaded('rentalItems')
+            ? $this->rentalItems
+            : $this->rentalItems()->get();
+
+        return (float) $items->sum('deposit_amount');
+    }
+
+    public function depositCollectedAmount(): float
+    {
+        return $this->depositAmountForType('collected');
+    }
+
+    public function depositRefundedAmount(): float
+    {
+        return $this->depositAmountForType('refunded');
+    }
+
+    public function depositAppliedAmount(): float
+    {
+        return $this->depositAmountForType('applied');
+    }
+
+    public function depositHeldAmount(): float
+    {
+        return max(0, $this->depositCollectedAmount() - $this->depositRefundedAmount() - $this->depositAppliedAmount());
+    }
+
+    public function depositOutstandingAmount(): float
+    {
+        return max(0, $this->depositRequiredAmount() - $this->depositCollectedAmount());
+    }
+
+    private function depositAmountForType(string $type): float
+    {
+        if ($this->relationLoaded('depositTransactions')) {
+            return (float) $this->depositTransactions->where('type', $type)->sum('amount');
+        }
+
+        return (float) $this->depositTransactions()->where('type', $type)->sum('amount');
+    }
 }

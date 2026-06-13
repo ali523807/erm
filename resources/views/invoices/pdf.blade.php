@@ -99,6 +99,7 @@
     </style>
 </head>
 <body>
+    @php($money = app(\App\Support\Money::class))
     <div class="header grid">
         <div class="col">
             <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
@@ -146,8 +147,8 @@
                 </td>
                 <td>{{ $item->start_date }} - {{ $item->end_date }}</td>
                 <td>{{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
-                <td class="right">{{ number_format((float) $item->rate, 2) }}</td>
-                <td class="right">{{ number_format((float) $item->total_price, 2) }}</td>
+                <td class="right">{{ $money->format($item->rate, $invoice->currency) }}</td>
+                <td class="right">{{ $money->format($item->total_price, $invoice->currency) }}</td>
             </tr>
         @endforeach
         </tbody>
@@ -156,35 +157,43 @@
     <table class="totals">
         <tr>
             <td>Subtotal</td>
-            <td class="right">{{ number_format((float) $invoice->subtotal, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->subtotal, $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Tax</td>
-            <td class="right">{{ number_format((float) $invoice->tax_amount, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->tax_amount, $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Damage Charges</td>
-            <td class="right">{{ number_format((float) $invoice->damage_amount, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->damage_amount, $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Late Fees</td>
-            <td class="right">{{ number_format((float) $invoice->late_fee_amount, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->late_fee_amount, $invoice->currency) }}</td>
+        </tr>
+        <tr>
+            <td>Billable Expenses</td>
+            <td class="right">{{ $money->format($invoice->billable_expense_amount, $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Discount</td>
-            <td class="right">-{{ number_format((float) $invoice->discount_amount, 2) }}</td>
+            <td class="right">-{{ $money->format($invoice->discount_amount, $invoice->currency) }}</td>
         </tr>
         <tr class="grand">
             <td>Total</td>
-            <td class="right">{{ number_format((float) $invoice->total_amount, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->total_amount, $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Paid</td>
-            <td class="right">{{ number_format((float) $invoice->paid_amount, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->paid_amount, $invoice->currency) }}</td>
+        </tr>
+        <tr>
+            <td>Credits</td>
+            <td class="right">-{{ $money->format($invoice->creditNotes->where('status', '!=', 'voided')->sum('amount'), $invoice->currency) }}</td>
         </tr>
         <tr>
             <td>Balance Due</td>
-            <td class="right">{{ number_format((float) $invoice->balance_due, 2) }}</td>
+            <td class="right">{{ $money->format($invoice->balance_due, $invoice->currency) }}</td>
         </tr>
     </table>
 

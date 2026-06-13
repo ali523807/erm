@@ -74,6 +74,16 @@ class Company extends Model
         return $this->hasMany(Quote::class);
     }
 
+    public function taxProfiles(): HasMany
+    {
+        return $this->hasMany(TaxProfile::class);
+    }
+
+    public function paymentGatewaySettings(): HasMany
+    {
+        return $this->hasMany(PaymentGatewaySetting::class);
+    }
+
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);

@@ -3,6 +3,9 @@
 @section('title', 'Equipments')
 
 @section('content')
+    @php
+        $canManageLocations = auth()->user()->hasCurrentCompanyPermission('locations.manage');
+    @endphp
 
     <div class="px-3">
         <div class="page-header">
@@ -32,7 +35,9 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Asset Status</th>
-                        <th>Location</th>
+                        @if($canManageLocations)
+                            <th>Location</th>
+                        @endif
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -53,20 +58,24 @@
         $(function () {
             new DataTable('#products-table').destroy();
 
+            const columns = [
+                {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+                {data: 'equipment_code', name: 'equipment_code'},
+                {data: 'name', name: 'name'},
+                {data: 'category.name', name: 'category'},
+                {data: 'asset_status', name: 'asset_status'},
+                @if($canManageLocations)
+                    {data: 'location_name', name: 'location_name'},
+                @endif
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ];
+
             let table = $('#products-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('products.index') }}",
-                columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-                    {data: 'equipment_code', name: 'equipment_code'},
-                    {data: 'name', name: 'name'},
-                    {data: 'category.name', name: 'category'},
-                    {data: 'asset_status', name: 'asset_status'},
-                    {data: 'location_name', name: 'location_name'},
-                    {data: 'status', name: 'status'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
-                ],
+                columns,
                 buttons: [],
             });
 

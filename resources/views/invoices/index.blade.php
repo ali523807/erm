@@ -3,6 +3,7 @@
 @section('title', 'Invoices')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -20,21 +21,21 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Invoiced</span>
-                    <h2 class="mb-0">{{ number_format($summary['total'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['total']) }}</h2>
                     <p class="text-muted mb-0">Total billed</p>
                 </section>
             </div>
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Collected</span>
-                    <h2 class="mb-0">{{ number_format($summary['paid'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['paid']) }}</h2>
                     <p class="text-muted mb-0">Payments received</p>
                 </section>
             </div>
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Outstanding</span>
-                    <h2 class="mb-0">{{ number_format($summary['balance'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['balance']) }}</h2>
                     <p class="text-muted mb-0">Balance due</p>
                 </section>
             </div>
@@ -79,8 +80,8 @@
                             </td>
                             <td>{{ $invoice->due_date?->format('Y-m-d') ?: '-' }}</td>
                             <td><span class="badge badge-soft-secondary">{{ str($invoice->status)->headline() }}</span></td>
-                            <td>{{ number_format((float) $invoice->total_amount, 2) }}</td>
-                            <td>{{ number_format((float) $invoice->balance_due, 2) }}</td>
+                            <td>{{ $money->format($invoice->total_amount, $invoice->currency) }}</td>
+                            <td>{{ $money->format($invoice->balance_due, $invoice->currency) }}</td>
                             <td>
                                 <div class="table-actions justify-content-end">
                                     <a href="{{ route('invoices.show', $invoice) }}" class="btn btn-sm btn-outline-secondary">

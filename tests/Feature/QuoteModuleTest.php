@@ -38,7 +38,46 @@ it('creates a quote with equipment lines and totals', function () {
         ->get(route('quotes.show', $quote))
         ->assertOk()
         ->assertSee($quote->quote_number)
-        ->assertSee('Silent Generator');
+        ->assertSee('Silent Generator')
+        ->assertSee('PDF');
+
+    $this->actingAs($user)
+        ->get(route('quotes.print', $quote))
+        ->assertOk()
+        ->assertSee('Quote')
+        ->assertSee($quote->quote_number);
+
+    $this->actingAs($user)
+        ->get(route('quotes.download', $quote))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+it('stores quote currency and base total using exchange rate', function () {
+    [$user, $company, $customer, $product] = createQuoteTenant('quote-currency@example.com', 'Quote Currency Rentals');
+    $company->update(['currency' => 'INR']);
+
+    $this->actingAs($user)
+        ->post(route('quotes.store'), quotePayload($customer, $product, [
+            'currency' => 'AED',
+            'exchange_rate' => 23.25,
+        ]))
+        ->assertRedirect();
+
+    $quote = Quote::firstOrFail();
+
+    expect($quote->currency)->toBe('AED')
+        ->and($quote->base_currency)->toBe('INR')
+        ->and($quote->exchange_rate)->toBe('23.25000000')
+        ->and($quote->total_amount)->toBe('640.00')
+        ->and($quote->base_total_amount)->toBe('14880.00');
+
+    $this->actingAs($user)
+        ->get(route('quotes.show', $quote))
+        ->assertOk()
+        ->assertSee('AED 640.00')
+        ->assertSee('Rs 14,880.00')
+        ->assertSee('1 AED = 23.25000000 INR');
 });
 
 it('does not allow the same equipment asset twice on one quote', function () {

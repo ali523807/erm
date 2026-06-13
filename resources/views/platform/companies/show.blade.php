@@ -3,6 +3,12 @@
 @section('title', $company->name)
 
 @section('content')
+    @php
+        $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class);
+        $currentPlan = $company->subscription?->plan;
+        $moduleMatrix = $moduleCatalog->matrixForPlan($currentPlan);
+    @endphp
+
     <div class="container-fluid erm-page">
         <div class="page-header">
             <div>
@@ -163,6 +169,32 @@
                                 <div>
                                     <strong>{{ $user->name }}</strong>
                                     <p>{{ $user->email }} · {{ str($user->pivot->role)->headline() }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section class="panel mt-3">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Plan Modules</h2>
+                            <p>Modules currently available to this company from the selected subscription plan.</p>
+                        </div>
+                    </div>
+                    <div class="module-entitlement-list">
+                        @foreach($moduleMatrix as $module)
+                            <div class="{{ $module['included'] ? 'is-included' : 'is-excluded' }}">
+                                <span>
+                                    @if($module['included'])
+                                        <x-lucide-check class="w-4 h-4"/>
+                                    @else
+                                        <x-lucide-lock class="w-4 h-4"/>
+                                    @endif
+                                </span>
+                                <div>
+                                    <strong>{{ $module['label'] }}</strong>
+                                    <p>{{ $module['description'] }}</p>
                                 </div>
                             </div>
                         @endforeach

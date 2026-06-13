@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SubscriptionModuleCatalog;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -91,6 +92,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasCurrentCompanyPermission(string $permission): bool
     {
         $role = $this->currentCompanyRole();
+        $company = $this->currentCompany;
+
+        if (! $company || ! app(SubscriptionModuleCatalog::class)->allowsPermission($company, $permission)) {
+            return false;
+        }
 
         if ($role === 'owner') {
             return true;

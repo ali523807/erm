@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -41,7 +42,7 @@ class CustomerStatementController extends Controller
         $fromDate = $request->filled('from') ? Carbon::parse($request->input('from'))->startOfDay() : null;
 
         $invoices = $customer->invoices()
-            ->with('payments')
+            ->with(['payments', 'creditNotes'])
             ->when($fromDate, fn ($query) => $query->whereDate('invoice_date', '>=', $fromDate->toDateString()))
             ->whereDate('invoice_date', '<=', $asOfDate->toDateString())
             ->orderBy('invoice_date')
@@ -56,6 +57,7 @@ class CustomerStatementController extends Controller
             'summary' => [
                 'invoiceTotal' => (float) $invoices->sum('total_amount'),
                 'paidTotal' => (float) $invoices->sum('paid_amount'),
+                'creditTotal' => (float) $invoices->sum(fn (Invoice $invoice): float => (float) $invoice->creditNotes->where('status', '!=', 'voided')->sum('amount')),
                 'balanceDue' => (float) $invoices->sum('balance_due'),
                 'openInvoices' => $invoices->where('balance_due', '>', 0)->count(),
             ],
@@ -134,7 +136,37 @@ class CustomerStatementController extends Controller
                     'url' => route('payments.receipt.print', $payment),
                 ]);
 
-                return $invoiceRow->merge($payments);
+                $credits = $invoice->creditNotes
+                    ->where('status', '!=', 'voided')
+                    ->flatMap(function (CreditNote $creditNote): Collection {
+                        $rows = collect([[
+                            'date' => $creditNote->credit_date,
+                            'type' => 'Credit Note',
+                            'reference' => $creditNote->credit_note_number,
+                            'description' => str($creditNote->reason)->headline()->toString(),
+                            'debit' => 0.0,
+                            'credit' => (float) $creditNote->amount,
+                            'balance' => 0.0,
+                            'url' => route('credit-notes.show', $creditNote),
+                        ]]);
+
+                        if ((float) $creditNote->refund_amount <= 0) {
+                            return $rows;
+                        }
+
+                        return $rows->push([
+                            'date' => $creditNote->credit_date,
+                            'type' => 'Refund',
+                            'reference' => $creditNote->refund_reference ?: $creditNote->credit_note_number,
+                            'description' => $creditNote->refund_method ? str($creditNote->refund_method)->headline()->toString() : 'Refund issued',
+                            'debit' => (float) $creditNote->refund_amount,
+                            'credit' => 0.0,
+                            'balance' => 0.0,
+                            'url' => route('credit-notes.show', $creditNote),
+                        ]);
+                    });
+
+                return $invoiceRow->merge($payments)->merge($credits);
             })
             ->sortBy(fn (array $row): string => optional($row['date'])->format('Y-m-d').$row['type'])
             ->values();

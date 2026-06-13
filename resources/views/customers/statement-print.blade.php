@@ -50,7 +50,7 @@
             display: inline-block;
             margin: 0 1% 12px 0;
             vertical-align: top;
-            width: 23%;
+            width: 18%;
         }
 
         .box {

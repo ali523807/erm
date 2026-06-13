@@ -8,9 +8,11 @@ use App\Models\Quote;
 use App\Models\Rental;
 use App\Services\ActivityLogger;
 use App\Services\EquipmentAvailabilityService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -92,6 +94,22 @@ class QuotesController extends Controller
             'quote' => $quote,
             'statuses' => $this->statuses,
         ]);
+    }
+
+    public function print(Quote $quote): View
+    {
+        $quote->load(['customer', 'items.product']);
+
+        return view('quotes.pdf', ['quote' => $quote]);
+    }
+
+    public function download(Quote $quote): Response
+    {
+        $quote->load(['customer', 'items.product']);
+
+        return Pdf::loadView('quotes.pdf', ['quote' => $quote])
+            ->setPaper('a4')
+            ->download($quote->quote_number.'.pdf');
     }
 
     public function edit(Quote $quote): View
@@ -243,6 +261,7 @@ class QuotesController extends Controller
             'customers' => Customer::orderBy('company_name')->get(),
             'products' => Product::with('category')->orderBy('name')->get(),
             'statuses' => $this->statuses,
+            'currencies' => $this->currencies(),
             'items' => old('items', $quote->exists ? $quote->items->map(fn ($item): array => [
                 'product_id' => $item->product_id,
                 'start_date' => $item->start_date?->format('Y-m-d'),
@@ -280,6 +299,8 @@ class QuotesController extends Controller
             'rental_end_date' => ['required', 'date', 'after_or_equal:rental_start_date'],
             'delivery_location' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(array_keys($this->statuses))],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'exchange_rate' => ['nullable', 'numeric', 'min:0.00000001'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'tax_amount' => ['nullable', 'numeric', 'min:0'],
             'terms' => ['nullable', 'string'],
@@ -337,17 +358,25 @@ class QuotesController extends Controller
 
     /**
      * @param  array<int, array<string, mixed>>  $items
-     * @return array{subtotal: float, discount_amount: float, tax_amount: float, total_amount: float}
+     * @return array{subtotal: float, discount_amount: float, tax_amount: float, total_amount: float, base_total_amount: float, currency: string, base_currency: string, exchange_rate: float}
      */
     private function totals(array $items, float $discount, float $tax): array
     {
         $subtotal = collect($items)->sum('line_total');
+        $currency = strtoupper(request('currency', auth()->user()->currentCompany?->currency ?? 'USD'));
+        $baseCurrency = auth()->user()->currentCompany?->currency ?? 'USD';
+        $exchangeRate = (float) request('exchange_rate', 1);
+        $total = max(0, $subtotal - $discount + $tax);
 
         return [
             'subtotal' => $subtotal,
             'discount_amount' => $discount,
             'tax_amount' => $tax,
-            'total_amount' => max(0, $subtotal - $discount + $tax),
+            'total_amount' => $total,
+            'base_total_amount' => round($total * ($exchangeRate ?: 1), 2),
+            'currency' => $currency,
+            'base_currency' => $baseCurrency,
+            'exchange_rate' => $exchangeRate ?: 1,
         ];
     }
 
@@ -392,6 +421,25 @@ class QuotesController extends Controller
         $next = Quote::withoutGlobalScopes()->where('company_id', $companyId)->count() + 1;
 
         return 'QTE-'.now()->format('Y').'-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function currencies(): array
+    {
+        return [
+            'USD' => 'USD',
+            'AED' => 'AED',
+            'INR' => 'INR',
+            'GBP' => 'GBP',
+            'EUR' => 'EUR',
+            'CAD' => 'CAD',
+            'AUD' => 'AUD',
+            'SAR' => 'SAR',
+            'SGD' => 'SGD',
+            'ZAR' => 'ZAR',
+        ];
     }
 
     /**

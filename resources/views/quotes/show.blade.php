@@ -3,7 +3,10 @@
 @section('title', $quote->quote_number)
 
 @section('content')
-    @php($hasConvertedRental = $quote->status === 'converted' && $quote->rental)
+    @php
+        $hasConvertedRental = $quote->status === 'converted' && $quote->rental;
+        $money = app(\App\Support\Money::class);
+    @endphp
 
     <div class="px-3">
         <div class="page-header">
@@ -16,6 +19,14 @@
                 <x-button :link="route('quotes.index')" color="outline-secondary">
                     <x-lucide-arrow-left class="w-4 h-4"/>
                     <span>Back</span>
+                </x-button>
+                <x-button :link="route('quotes.print', $quote)" color="outline-secondary" target="_blank">
+                    <x-lucide-printer class="w-4 h-4"/>
+                    <span>Print</span>
+                </x-button>
+                <x-button :link="route('quotes.download', $quote)" color="outline-secondary">
+                    <x-lucide-download class="w-4 h-4"/>
+                    <span>PDF</span>
                 </x-button>
                 @if($quote->status !== 'converted')
                     <x-button :link="route('quotes.edit', $quote)" color="dark">
@@ -64,8 +75,8 @@
                                     </td>
                                     <td>{{ $item->start_date?->format('Y-m-d') }} - {{ $item->end_date?->format('Y-m-d') }}</td>
                                     <td>1 asset x {{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
-                                    <td>{{ number_format((float) $item->rate, 2) }}</td>
-                                    <td>{{ number_format((float) $item->line_total, 2) }}</td>
+                                    <td>{{ $money->format($item->rate, $quote->currency) }}</td>
+                                    <td>{{ $money->format($item->line_total, $quote->currency) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -94,19 +105,27 @@
                         </div>
                         <div>
                             <dt>Subtotal</dt>
-                            <dd>{{ number_format((float) $quote->subtotal, 2) }}</dd>
+                            <dd>{{ $money->format($quote->subtotal, $quote->currency) }}</dd>
                         </div>
                         <div>
                             <dt>Discount</dt>
-                            <dd>{{ number_format((float) $quote->discount_amount, 2) }}</dd>
+                            <dd>{{ $money->format($quote->discount_amount, $quote->currency) }}</dd>
                         </div>
                         <div>
                             <dt>Tax</dt>
-                            <dd>{{ number_format((float) $quote->tax_amount, 2) }}</dd>
+                            <dd>{{ $money->format($quote->tax_amount, $quote->currency) }}</dd>
                         </div>
                         <div>
                             <dt>Total</dt>
-                            <dd>{{ number_format((float) $quote->total_amount, 2) }}</dd>
+                            <dd>{{ $money->format($quote->total_amount, $quote->currency) }}</dd>
+                        </div>
+                        <div>
+                            <dt>Base Total</dt>
+                            <dd>{{ $money->format($quote->base_total_amount, $quote->base_currency) }}</dd>
+                        </div>
+                        <div>
+                            <dt>Exchange Rate</dt>
+                            <dd>1 {{ $quote->currency }} = {{ number_format((float) $quote->exchange_rate, 8) }} {{ $quote->base_currency }}</dd>
                         </div>
                     </dl>
 
@@ -140,6 +159,19 @@
                         <a href="{{ route('rentals.show', $quote->rental) }}" class="btn btn-outline-secondary w-100 mt-3">Open Rental RTN-{{ $quote->rental->id }}</a>
                     @endif
                 </section>
+            </div>
+
+            <div class="col-12">
+                @include('document-deliveries._send-form', [
+                    'action' => route('quotes.send', $quote),
+                    'idPrefix' => 'quote_email',
+                    'title' => 'Email Quote',
+                    'description' => 'Send the quote PDF to the customer and record the delivery attempt.',
+                    'recipientEmail' => $quote->customer?->email,
+                    'recipientName' => $quote->customer?->contact_person,
+                    'subject' => 'Quote '.$quote->quote_number,
+                    'message' => 'Please find the attached quote for your review.',
+                ])
             </div>
 
             <div class="col-12">

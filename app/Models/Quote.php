@@ -20,10 +20,12 @@ class Quote extends Model
             'valid_until' => 'date',
             'rental_start_date' => 'date',
             'rental_end_date' => 'date',
+            'exchange_rate' => 'decimal:8',
             'subtotal' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'base_total_amount' => 'decimal:2',
         ];
     }
 
