@@ -123,7 +123,7 @@
             </div>
 
             <div class="mt-3">
-                {{ $logs->links() }}
+                <x-pagination :paginator="$logs"/>
             </div>
         </section>
     </div>

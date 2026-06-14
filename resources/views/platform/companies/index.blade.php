@@ -56,7 +56,7 @@
             </div>
 
             <div class="mt-3">
-                {{ $companies->links() }}
+                <x-pagination :paginator="$companies"/>
             </div>
         </section>
     </div>

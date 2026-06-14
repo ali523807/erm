@@ -23,8 +23,8 @@
     </button>
     <div class="navbar-collapse">
         <div class="topbar-title">
-            <span>{{ auth()->user()->currentCompany?->name ?? 'ERM Workspace' }}</span>
-            <small>Equipment rental SaaS</small>
+            <span>{{ auth()->user()->currentCompany?->name ?? 'RentalHook Workspace' }}</span>
+            <small>The Complete Equipment Rental Platform</small>
         </div>
         <ul class="navbar-nav">
             <li class="nav-item dropdown me-2">

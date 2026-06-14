@@ -3,6 +3,7 @@
 @section('title', 'Customers')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -49,7 +50,7 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Balance Due</span>
-                    <h2 class="mb-0">{{ number_format($summary['balanceDue'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['balanceDue']) }}</h2>
                     <p class="text-muted mb-0">Across all customers</p>
                 </section>
             </div>
@@ -72,6 +73,23 @@
                             <option value="all" @selected($filters['status'] === 'all')>All customers</option>
                             <option value="active" @selected($filters['status'] === 'active')>Active customers</option>
                             <option value="balance" @selected($filters['status'] === 'balance')>With balance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label mb-1">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="company_name" @selected($filters['sort'] === 'company_name')>Company</option>
+                            <option value="contact_person" @selected($filters['sort'] === 'contact_person')>Contact</option>
+                            <option value="balance" @selected($filters['sort'] === 'balance')>Balance</option>
+                            <option value="rentals" @selected($filters['sort'] === 'rentals')>Rentals</option>
+                            <option value="created_at" @selected($filters['sort'] === 'created_at')>Created date</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label mb-1">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="asc" @selected($filters['direction'] === 'asc')>A to Z / Low first</option>
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Z to A / High first</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-outline-secondary">
@@ -109,7 +127,7 @@
                                 <span class="badge badge-soft-secondary">{{ $customer->quotes_count }} quotes</span>
                                 <span class="badge badge-soft-info">{{ $customer->invoices_count }} invoices</span>
                             </td>
-                            <td>{{ number_format((float) $customer->balance_due_sum, 2) }}</td>
+                            <td>{{ $money->format($customer->balance_due_sum) }}</td>
                             <td>
                                 {{ $customer->vat_number ?: '-' }}
                                 <div class="text-muted text-xs">{{ $customer->trade_license_number ?: 'No license' }}</div>
@@ -135,6 +153,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$customers"/>
         </section>
     </div>
 @endsection

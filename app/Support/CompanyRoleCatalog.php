@@ -32,6 +32,9 @@ class CompanyRoleCatalog
             'Customers' => [
                 'customers.manage' => 'Manage customers',
             ],
+            'Notifications' => [
+                'notifications.manage' => 'View and generate reminders',
+            ],
             'Finance' => [
                 'invoices.manage' => 'Manage invoices',
                 'payments.manage' => 'Record payments and receipts',
@@ -69,25 +72,25 @@ class CompanyRoleCatalog
             'sales' => [
                 'name' => 'Sales',
                 'description' => 'Best for users who create customers, prepare quotes, and follow rental opportunities.',
-                'permissions' => ['dashboard.view', 'customers.manage', 'quotes.manage', 'availability.view'],
+                'permissions' => ['dashboard.view', 'customers.manage', 'quotes.manage', 'availability.view', 'notifications.manage'],
                 'sort_order' => 30,
             ],
             'operations' => [
                 'name' => 'Operations',
                 'description' => 'Best for dispatch, returns, equipment movement, and day-to-day rental execution.',
-                'permissions' => ['dashboard.view', 'rentals.manage', 'dispatch.manage', 'availability.view', 'equipment.manage'],
+                'permissions' => ['dashboard.view', 'rentals.manage', 'dispatch.manage', 'availability.view', 'equipment.manage', 'notifications.manage'],
                 'sort_order' => 40,
             ],
             'accounts' => [
                 'name' => 'Accounts',
                 'description' => 'Best for invoices, payments, receipts, and revenue reporting.',
-                'permissions' => ['dashboard.view', 'reports.view', 'invoices.manage', 'payments.manage'],
+                'permissions' => ['dashboard.view', 'reports.view', 'invoices.manage', 'payments.manage', 'notifications.manage'],
                 'sort_order' => 50,
             ],
             'maintenance' => [
                 'name' => 'Maintenance',
                 'description' => 'Best for equipment service, inspection, repair notes, and workshop tracking.',
-                'permissions' => ['dashboard.view', 'equipment.manage', 'maintenance.manage'],
+                'permissions' => ['dashboard.view', 'equipment.manage', 'maintenance.manage', 'notifications.manage'],
                 'sort_order' => 60,
             ],
             'viewer' => [

@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>ERM Cloud - Global Equipment Rental Management SaaS</title>
+    <title>RentalHook - The Complete Equipment Rental Platform</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body class="landing-page">
+@php($money = app(\App\Support\Money::class))
 <header class="landing-nav">
     <a href="{{ route('landing') }}" class="brand-lockup">
         <span class="brand-mark">
-            <x-lucide-building-2 class="w-5 h-5"/>
+            <x-application-logo/>
         </span>
         <span>
-            <strong>ERM Cloud</strong>
-            <small>Equipment rental SaaS</small>
+            <strong>RentalHook</strong>
+            <small>The Complete Equipment Rental Platform</small>
         </span>
     </a>
 
     <nav>
-        <a href="#platform">Platform</a>
+        <a href="#software">Software</a>
         <a href="#modules">Modules</a>
         <a href="#pricing">Pricing</a>
         <a href="{{ route('login') }}">Login</a>
@@ -34,9 +35,9 @@
         <img src="{{ asset('images/landing-equipment-yard.jpg') }}" alt="Equipment rental yard with machinery ready for dispatch">
         <div class="landing-hero-overlay"></div>
         <div class="landing-hero-content">
-            <span class="eyebrow">Global Equipment Rental Management SaaS</span>
-            <h1>ERM Cloud</h1>
-            <p>Run rental companies, customers, equipment, quotes, rentals, agreements, invoices, payments, deposits, maintenance, documents, reports, and subscriptions from one modern cloud platform.</p>
+            <span class="eyebrow">The Complete Equipment Rental Platform</span>
+            <h1>RentalHook</h1>
+            <p>Run your rental company with customers, equipment, quotes, rentals, agreements, invoices, payments, deposits, maintenance, documents, and reports in one modern cloud workspace.</p>
             <div class="landing-actions">
                 <a href="{{ route('register') }}" class="btn btn-light btn-lg">
                     <x-lucide-rocket class="w-4 h-4"/>
@@ -47,10 +48,10 @@
                     View Plans
                 </a>
             </div>
-            <div class="hero-proof-grid" aria-label="Platform highlights">
+            <div class="hero-proof-grid" aria-label="Software highlights">
                 <div>
-                    <strong>Multi-tenant</strong>
-                    <span>Separate SaaS owner and tenant workspaces</span>
+                    <strong>Company workspace</strong>
+                    <span>Your team, fleet, customers, and finance in one place</span>
                 </div>
                 <div>
                     <strong>Global ready</strong>
@@ -64,11 +65,11 @@
         </div>
     </section>
 
-    <section class="landing-software-band" id="platform">
+    <section class="landing-software-band" id="software">
         <div class="landing-section-heading">
             <span class="eyebrow">Software Glimpse</span>
             <h2>Built around the real flow of a rental business.</h2>
-            <p>ERM Cloud separates platform ownership from tenant operations, then gives each rental company a complete workspace for daily operations and finance.</p>
+            <p>RentalHook gives equipment rental companies a complete workspace for daily operations, asset control, customer service, and finance.</p>
         </div>
 
         <div class="software-preview-grid">
@@ -79,7 +80,7 @@
                     </div>
                     <div class="software-dashboard-mock">
                         <aside>
-                            <strong>ERM Cloud</strong>
+                            <strong>RentalHook</strong>
                             <span class="active">Dashboard</span>
                             <span>Customers</span>
                             <span>Fleet</span>
@@ -112,24 +113,30 @@
                         </section>
                     </div>
                 </div>
-                <h3>Tenant operations workspace</h3>
-                <p>Each rental company manages its own customers, equipment, availability, rental lifecycle, billing, users, permissions, and reports.</p>
+                <h3>Rental operations workspace</h3>
+                <p>Manage customers, equipment, availability, rental lifecycle, billing, users, permissions, and reports from one company account.</p>
             </article>
 
             <article class="software-preview">
-                <x-lucide-monitor-cog class="w-7 h-7"/>
-                <h3>Platform owner control</h3>
-                <p>Manage registered companies, subscriptions, billing dates, plan status, and active client accounts from a separate owner panel.</p>
+                <span class="software-preview-icon">
+                    <x-lucide-briefcase-business/>
+                </span>
+                <h3>Owner control</h3>
+                <p>Give rental business owners clear visibility over revenue, active rentals, payments, teams, reports, and operating performance.</p>
             </article>
 
             <article class="software-preview">
-                <x-lucide-package-search class="w-7 h-7"/>
+                <span class="software-preview-icon">
+                    <x-lucide-package-search/>
+                </span>
                 <h3>Flexible equipment setup</h3>
                 <p>Support any asset type with categories, attribute templates, rate cards, documents, locations, and availability checks.</p>
             </article>
 
             <article class="software-preview">
-                <x-lucide-receipt-text class="w-7 h-7"/>
+                <span class="software-preview-icon">
+                    <x-lucide-receipt-text/>
+                </span>
                 <h3>Finance and documents</h3>
                 <p>Create PDFs for quotes, invoices, receipts, credit notes, statements, and agreements with payment links and delivery logs.</p>
             </article>
@@ -138,14 +145,14 @@
 
     <section class="landing-band landing-primary-band">
         <div class="landing-section-heading">
-            <span class="eyebrow">Three Workspaces</span>
-            <h2>Clear separation for SaaS ownership, rental teams, and customers.</h2>
+            <span class="eyebrow">Built For Rental Companies</span>
+            <h2>Clear tools for owners, teams, and customers.</h2>
         </div>
         <div class="workspace-grid">
             <article>
-                <x-lucide-shield-check class="w-6 h-6"/>
-                <strong>Platform Owner</strong>
-                <p>Track client companies, subscriptions, plan changes, billing status, and recurring revenue.</p>
+                <x-lucide-briefcase-business class="w-6 h-6"/>
+                <strong>Business Owner</strong>
+                <p>Track revenue, payments, outstanding invoices, equipment utilization, reports, and team activity.</p>
             </article>
             <article>
                 <x-lucide-hard-hat class="w-6 h-6"/>
@@ -164,7 +171,7 @@
         <div class="landing-section-heading">
             <span class="eyebrow">Modules Covered</span>
             <h2>A complete suite for asset-based rental operations.</h2>
-            <p>The product is no longer just rentals and invoices. It now covers the operational, financial, customer, and SaaS layers needed for a real subscription product.</p>
+            <p>The product is no longer just rentals and invoices. It now covers the operational, financial, customer, and asset-control layers needed by a growing rental company.</p>
         </div>
 
         <div class="module-grid">
@@ -225,7 +232,7 @@
             <article>
                 <span>01</span>
                 <strong>Register company</strong>
-                <p>Choose a plan, create the tenant workspace, and assign the owner user.</p>
+                <p>Choose a plan, create your company workspace, and invite the right users.</p>
             </article>
             <article>
                 <span>02</span>
@@ -255,7 +262,7 @@
             <div>
                 <span class="eyebrow">Subscription Plans</span>
                 <h2>Pick the right plan for each rental company.</h2>
-                <p>Plans are managed from the platform database and appear here automatically for new company registration.</p>
+                <p>Start with the modules your rental company needs today and upgrade as your operations grow.</p>
             </div>
             <a href="{{ route('register') }}" class="btn btn-outline-secondary">
                 <x-lucide-building-2 class="w-4 h-4"/>
@@ -264,78 +271,81 @@
         </div>
 
         <div class="pricing-grid">
-            @forelse($plans as $plan)
-                @php
-                    $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class);
-                    $isFeatured = $plan->slug === 'business';
-                    $audience = match ($plan->slug) {
-                        'starter' => 'Small teams starting with core rentals',
-                        'business' => 'Growing rental companies with finance and operations',
-                        'enterprise' => 'Multi-branch teams needing scale and control',
-                        default => 'Rental teams ready for a cloud workspace',
-                    };
-                    $extraFeatures = match ($plan->slug) {
-                        'starter' => ['Customer and equipment records', 'Core rental workflow', 'Basic billing visibility'],
-                        'business' => ['Quotes, rentals, invoices, payments', 'Maintenance, deposits, reports', 'Customer portal and documents'],
-                        'enterprise' => ['Unlimited operating scale', 'Advanced controls and analytics', 'Priority rollout support'],
-                        default => ['Tenant workspace', 'Rental operations', 'Subscription billing'],
-                    };
-                    $includedModules = $moduleCatalog->featureLabelsForPlan($plan);
-                @endphp
-                <article class="pricing-card {{ $isFeatured ? 'is-featured' : '' }}">
-                    @if($isFeatured)
-                        <span class="plan-badge">Recommended</span>
-                    @endif
-                    <span class="plan-audience">{{ $audience }}</span>
-                    <h3>{{ $plan->name }}</h3>
-                    <p>{{ $plan->description }}</p>
-                    <div class="plan-price">
-                        <strong>${{ number_format($plan->monthly_price, 0) }}</strong>
-                        <span>/ month</span>
-                    </div>
-                    @if($plan->yearly_price)
-                        <div class="plan-yearly">${{ number_format($plan->yearly_price, 0) }} billed yearly</div>
-                    @endif
-                    <div class="plan-module-list">
-                        <span>Included modules</span>
-                        <div>
-                            @foreach($includedModules as $module)
-                                <small>{{ $module }}</small>
-                            @endforeach
+            <?php $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class); ?>
+            <?php if ($plans->isNotEmpty()) { ?>
+                <?php foreach ($plans as $plan) { ?>
+                    <?php
+                        $isFeatured = $plan->slug === 'business';
+                        $audience = match ($plan->slug) {
+                            'starter' => 'Small teams starting with core rentals',
+                            'business' => 'Growing rental companies with finance and operations',
+                            'enterprise' => 'Multi-branch teams needing scale and control',
+                            default => 'Rental teams ready for a cloud workspace',
+                        };
+                        $extraFeatures = match ($plan->slug) {
+                            'starter' => ['Customer and equipment records', 'Core rental workflow', 'Basic billing visibility'],
+                            'business' => ['Quotes, rentals, invoices, payments', 'Maintenance, deposits, reports', 'Customer portal and documents'],
+                            'enterprise' => ['Unlimited operating scale', 'Advanced controls and analytics', 'Priority rollout support'],
+                            default => ['Company workspace', 'Rental operations', 'Subscription billing'],
+                        };
+                        $includedModules = $moduleCatalog->featureLabelsForPlan($plan);
+                        $featureList = array_values(array_unique(array_merge($extraFeatures, $plan->features ?? [])));
+                    ?>
+                    <article class="pricing-card <?php echo e($isFeatured ? 'is-featured' : ''); ?>">
+                        <?php if ($isFeatured) { ?>
+                            <span class="plan-badge">Recommended</span>
+                        <?php } ?>
+                        <span class="plan-audience"><?php echo e($audience); ?></span>
+                        <h3><?php echo e($plan->name); ?></h3>
+                        <p><?php echo e($plan->description); ?></p>
+                        <div class="plan-price">
+                            <strong><?php echo e($money->format($plan->monthly_price, 'USD')); ?></strong>
+                            <span>/ month</span>
                         </div>
-                    </div>
-                    <ul>
-                        @foreach(array_values(array_unique(array_merge($extraFeatures, $plan->features ?? []))) as $feature)
+                        <?php if ($plan->yearly_price) { ?>
+                            <div class="plan-yearly"><?php echo e($money->format($plan->yearly_price, 'USD')); ?> billed yearly</div>
+                        <?php } ?>
+                        <div class="plan-module-list">
+                            <span>Included modules</span>
+                            <div>
+                                <?php foreach ($includedModules as $module) { ?>
+                                    <small><?php echo e($module); ?></small>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <ul>
+                            <?php foreach ($featureList as $feature) { ?>
+                                <li>
+                                    <span aria-hidden="true">&check;</span>
+                                    <?php echo e($feature); ?>
+                                </li>
+                            <?php } ?>
                             <li>
-                                <x-lucide-check class="w-4 h-4"/>
-                                {{ $feature }}
+                                <span aria-hidden="true">&check;</span>
+                                <?php echo e($plan->user_limit ? number_format($plan->user_limit).' users included' : 'Unlimited users'); ?>
                             </li>
-                        @endforeach
-                        <li>
-                            <x-lucide-check class="w-4 h-4"/>
-                            {{ $plan->user_limit ? number_format($plan->user_limit).' users included' : 'Unlimited users' }}
-                        </li>
-                        <li>
-                            <x-lucide-check class="w-4 h-4"/>
-                            {{ $plan->equipment_limit ? number_format($plan->equipment_limit).' equipment records' : 'Unlimited equipment records' }}
-                        </li>
-                    </ul>
-                    <a href="{{ route('register', ['plan' => $plan->slug]) }}" class="btn {{ $isFeatured ? 'btn-dark' : 'btn-outline-secondary' }} w-100">
-                        Start {{ $plan->name }}
-                    </a>
-                </article>
-            @empty
+                            <li>
+                                <span aria-hidden="true">&check;</span>
+                                <?php echo e($plan->equipment_limit ? number_format($plan->equipment_limit).' equipment records' : 'Unlimited equipment records'); ?>
+                            </li>
+                        </ul>
+                        <a href="<?php echo e(route('register', ['plan' => $plan->slug])); ?>" class="btn <?php echo e($isFeatured ? 'btn-dark' : 'btn-outline-secondary'); ?> w-100">
+                            Start <?php echo e($plan->name); ?>
+                        </a>
+                    </article>
+                <?php } ?>
+            <?php } else { ?>
                 <div class="panel">
                     <h3>No plans configured yet.</h3>
-                    <p class="mb-0 text-muted">Add subscription plans in the platform database to show pricing.</p>
+                    <p class="mb-0 text-muted">Subscription plans will appear here once pricing is configured.</p>
                 </div>
-            @endforelse
+            <?php } ?>
         </div>
     </section>
 </main>
 
 <footer class="landing-footer">
-    <span>ERM Cloud</span>
+    <span>RentalHook</span>
     <div>
         <a href="{{ route('login') }}">Login</a>
         <a href="{{ route('customer-portal.login') }}">Customer Portal</a>

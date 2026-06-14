@@ -99,7 +99,7 @@
     <div class="header">
         <div class="col">
             <h1>Customer Statement</h1>
-            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
+            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'RentalHook' }}</div>
             <div class="muted">{{ auth()->user()->currentCompany?->email }}</div>
         </div>
         <div class="col right">

@@ -16,21 +16,69 @@ class InvoicePaymentController extends Controller
 {
     public function __construct(private ActivityLogger $activity) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $payments = InvoicePayment::with(['invoice.customer', 'invoice.rental'])
-            ->latest('payment_date')
-            ->latest()
-            ->get();
-        $baseAmount = fn (InvoicePayment $payment): float => (float) $payment->amount * (float) ($payment->invoice?->exchange_rate ?: 1);
+        $search = trim((string) $request->input('search'));
+        $method = (string) $request->input('method', 'all');
+        $sort = (string) $request->input('sort', 'payment_date');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['payment_date', 'invoice', 'customer', 'method', 'amount'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'payment_date';
+
+        $payments = InvoicePayment::query()
+            ->with(['invoice.customer', 'invoice.rental'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('reference', 'like', "%{$search}%")
+                        ->orWhereHas('invoice', function ($query) use ($search): void {
+                            $query->where('invoice_number', 'like', "%{$search}%")
+                                ->orWhereHas('customer', function ($query) use ($search): void {
+                                    $query->where('company_name', 'like', "%{$search}%")
+                                        ->orWhere('contact_person', 'like', "%{$search}%")
+                                        ->orWhere('email', 'like', "%{$search}%");
+                                });
+                        });
+                });
+            })
+            ->when($method !== 'all', fn ($query) => $query->where('method', $method));
+
+        if ($sort === 'invoice') {
+            $payments->leftJoin('invoices', 'invoice_payments.invoice_id', '=', 'invoices.id')
+                ->select('invoice_payments.*')
+                ->orderBy('invoices.invoice_number', $direction);
+        } elseif ($sort === 'customer') {
+            $payments->leftJoin('invoices', 'invoice_payments.invoice_id', '=', 'invoices.id')
+                ->leftJoin('customers', 'invoices.customer_id', '=', 'customers.id')
+                ->select('invoice_payments.*')
+                ->orderBy('customers.company_name', $direction);
+        } else {
+            $payments->orderBy($sort, $direction);
+        }
+
+        $payments = $payments->orderByDesc('invoice_payments.id')->paginate(25)->withQueryString();
+        $paymentTotals = InvoicePayment::query()
+            ->leftJoin('invoices', 'invoice_payments.invoice_id', '=', 'invoices.id')
+            ->selectRaw("
+                COALESCE(SUM(invoice_payments.amount * COALESCE(invoices.exchange_rate, 1)), 0) as total,
+                COALESCE(SUM(CASE WHEN invoice_payments.method = 'cash' THEN invoice_payments.amount * COALESCE(invoices.exchange_rate, 1) ELSE 0 END), 0) as cash,
+                COALESCE(SUM(CASE WHEN invoice_payments.method = 'bank_transfer' THEN invoice_payments.amount * COALESCE(invoices.exchange_rate, 1) ELSE 0 END), 0) as bank
+            ")
+            ->first();
 
         return view('payments.index', [
             'payments' => $payments,
+            'filters' => [
+                'search' => $search,
+                'method' => $method,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
+            'methods' => $this->paymentMethods(),
             'summary' => [
-                'total' => (float) $payments->sum($baseAmount),
-                'count' => $payments->count(),
-                'cash' => (float) $payments->where('method', 'cash')->sum($baseAmount),
-                'bank' => (float) $payments->where('method', 'bank_transfer')->sum($baseAmount),
+                'total' => (float) $paymentTotals->total,
+                'count' => InvoicePayment::count(),
+                'cash' => (float) $paymentTotals->cash,
+                'bank' => (float) $paymentTotals->bank,
             ],
         ]);
     }
@@ -85,5 +133,20 @@ class InvoicePaymentController extends Controller
         ])
             ->setPaper('a4')
             ->download('Receipt-'.$payment->receiptNumber().'.pdf');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function paymentMethods(): array
+    {
+        return [
+            'cash' => 'Cash',
+            'bank_transfer' => 'Bank Transfer',
+            'card' => 'Card',
+            'cheque' => 'Cheque',
+            'online' => 'Online',
+            'deposit' => 'Deposit',
+        ];
     }
 }

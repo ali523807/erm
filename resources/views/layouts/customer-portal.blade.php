@@ -11,10 +11,10 @@
 <div class="platform-shell">
     <aside class="platform-sidebar">
         <a href="{{ route('customer-portal.dashboard') }}" class="brand-lockup">
-            <span class="brand-mark"><x-lucide-briefcase-business class="w-5 h-5"/></span>
+            <span class="brand-mark"><x-application-logo/></span>
             <span>
                 <strong>Customer Portal</strong>
-                <small>{{ auth('customer')->user()->company->name }}</small>
+                <small>Powered by RentalHook</small>
             </span>
         </a>
 

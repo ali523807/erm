@@ -27,13 +27,36 @@ it('renders actual tenant statistics on the dashboard', function () {
         ->assertSee('Operations Dashboard')
         ->assertSee('Dashboard Rentals')
         ->assertSee('This Month Invoiced')
-        ->assertSee('1,250.00')
-        ->assertSee('400.00')
-        ->assertSee('850.00')
+        ->assertSee('$ 1,250.00')
+        ->assertSee('$ 400.00')
+        ->assertSee('$ 850.00')
         ->assertSee('Acme Build Co')
         ->assertSee('Silent Generator')
         ->assertSee('Monthly safety inspection')
         ->assertSee('Business');
+});
+
+it('shows dashboard finance metrics in company base currency', function () {
+    $this->travelTo('2026-06-02 10:00:00');
+
+    [$user, $company] = createDashboardTenant();
+
+    $company->update(['currency' => 'INR']);
+
+    Invoice::where('company_id', $company->id)->update([
+        'currency' => 'USD',
+        'base_currency' => 'INR',
+        'exchange_rate' => 83,
+        'base_total_amount' => 103750,
+        'base_balance_due' => 70550,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertOk()
+        ->assertSee('Rs 103,750.00')
+        ->assertSee('Rs 33,200.00')
+        ->assertSee('Rs 70,550.00');
 });
 
 /**

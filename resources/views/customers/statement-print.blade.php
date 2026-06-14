@@ -104,7 +104,7 @@
     <div class="header">
         <div>
             <h1>Customer Statement</h1>
-            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
+            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'RentalHook' }}</div>
         </div>
         <div style="text-align: right;">
             <strong>{{ $customer->company_name }}</strong><br>

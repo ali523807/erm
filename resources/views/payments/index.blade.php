@@ -49,6 +49,49 @@
         </div>
 
         <section class="panel">
+            <div class="list-toolbar">
+                <div>
+                    <h2 class="mb-1">Payment Ledger</h2>
+                    <p class="text-muted mb-0">Review receipts by invoice, customer, method, reference, and payment date.</p>
+                </div>
+                <form method="GET" action="{{ route('payments.index') }}">
+                    <div>
+                        <label for="search" class="form-label">Search</label>
+                        <input id="search" name="search" class="form-control" value="{{ $filters['search'] }}" placeholder="Invoice, customer, reference">
+                    </div>
+                    <div>
+                        <label for="method" class="form-label">Method</label>
+                        <select id="method" name="method" class="form-select">
+                            <option value="all" @selected($filters['method'] === 'all')>All methods</option>
+                            @foreach($methods as $value => $label)
+                                <option value="{{ $value }}" @selected($filters['method'] === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="payment_date" @selected($filters['sort'] === 'payment_date')>Payment date</option>
+                            <option value="invoice" @selected($filters['sort'] === 'invoice')>Invoice</option>
+                            <option value="customer" @selected($filters['sort'] === 'customer')>Customer</option>
+                            <option value="method" @selected($filters['sort'] === 'method')>Method</option>
+                            <option value="amount" @selected($filters['sort'] === 'amount')>Amount</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Newest / High first</option>
+                            <option value="asc" @selected($filters['direction'] === 'asc')>Oldest / Low first</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <x-lucide-search class="w-4 h-4"/>
+                        Apply
+                    </button>
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table class="table modern-table align-middle">
                     <thead>
@@ -112,6 +155,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$payments"/>
         </section>
     </div>
 @endsection

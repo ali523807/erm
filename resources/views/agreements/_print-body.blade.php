@@ -1,6 +1,8 @@
+@php($money = app(\App\Support\Money::class))
+
 <div class="header">
     <div>
-        <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
+        <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'RentalHook' }}</div>
         <div class="muted">{{ auth()->user()->currentCompany?->email }}</div>
     </div>
     <div>
@@ -43,8 +45,8 @@
             <td><strong>{{ $item->product?->name }}</strong><br><span class="muted">{{ $item->product?->equipment_code }}</span></td>
             <td>{{ $item->start_date }} - {{ $item->end_date }}</td>
             <td>{{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
-            <td>{{ number_format((float) $item->rate, 2) }}</td>
-            <td>{{ number_format((float) $item->deposit_amount, 2) }}</td>
+            <td>{{ $money->format($item->rate) }}</td>
+            <td>{{ $money->format($item->deposit_amount) }}</td>
         </tr>
     @endforeach
     </tbody>
@@ -72,7 +74,7 @@
             <strong>Condition:</strong> {{ $agreement->return_condition ?: '-' }}<br>
             <strong>Missing Accessories:</strong> {{ $agreement->return_missing_accessories ?: '-' }}<br>
             <strong>Damage Notes:</strong> {{ $agreement->return_damage_notes ?: '-' }}<br>
-            <strong>Damage Charge:</strong> {{ number_format((float) $agreement->damage_amount, 2) }}
+            <strong>Damage Charge:</strong> {{ $money->format($agreement->damage_amount) }}
         </div>
     </section>
 </div>

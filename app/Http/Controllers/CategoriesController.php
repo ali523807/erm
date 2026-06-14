@@ -11,41 +11,7 @@ class CategoriesController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $categories = Category::query();
-
-            $sortCol = null;
-            $sortDir = null;
-
-            if($request->has('order') && $request->get('order')) {
-                $sortCol = $request->get('order')[0]['name'];
-                $sortDir = $request->get('order')[0]['dir'];
-
-                if($sortCol == 'DT_RowIndex') {
-                    $sortCol = null;
-                    $sortDir = null;
-                }
-            }
-
-            if($sortCol) {
-                $categories = $categories->orderBy($sortCol, $sortDir ?? 'asc');
-            }
-
-
-
-            $filterCount = $categories->clone()->count();
-            $totalCount = Category::count();
-
-            $categories = $categories->skip($request->start ?? 0)
-                ->take($request->length ?? 10);
-
-            $categories = $categories->get();
-
-            return DataTables::of($categories)
-                ->with([
-                    "recordsTotal" => $totalCount,
-                    "recordsFiltered" => $filterCount,
-                ])
-                ->skipPaging()
+            return DataTables::eloquent(Category::query()->latest())
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     return view('categories._actions', ['category' => $row])->render();
@@ -60,7 +26,7 @@ class CategoriesController extends Controller
     public function storeOrUpdate(Request $request)
     {
         $request->validate([
-            'name' => 'required|min:2'
+            'name' => 'required|min:2',
         ]);
         if ($request->id) {
             Category::find($request->id)->update($request->all());

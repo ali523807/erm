@@ -83,6 +83,63 @@
                 </div>
             </div>
 
+            <div class="list-toolbar">
+                <div></div>
+                <form method="GET" action="{{ route('expenses.index') }}">
+                    <div>
+                        <label for="search" class="form-label">Search</label>
+                        <input id="search" name="search" class="form-control" value="{{ $filters['search'] }}" placeholder="Expense, vendor, RTN, asset">
+                    </div>
+                    <div>
+                        <label for="category" class="form-label">Category</label>
+                        <select id="category" name="category" class="form-select">
+                            <option value="all" @selected($filters['category'] === 'all')>All categories</option>
+                            @foreach($categories as $value => $label)
+                                <option value="{{ $value }}" @selected($filters['category'] === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="payment_status" class="form-label">Status</label>
+                        <select id="payment_status" name="payment_status" class="form-select">
+                            <option value="all" @selected($filters['payment_status'] === 'all')>All statuses</option>
+                            @foreach($paymentStatuses as $value => $label)
+                                <option value="{{ $value }}" @selected($filters['payment_status'] === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="billable" class="form-label">Billable</label>
+                        <select id="billable" name="billable" class="form-select">
+                            <option value="all" @selected($filters['billable'] === 'all')>All expenses</option>
+                            <option value="yes" @selected($filters['billable'] === 'yes')>Billable only</option>
+                            <option value="no" @selected($filters['billable'] === 'no')>Non-billable only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="expense_date" @selected($filters['sort'] === 'expense_date')>Expense date</option>
+                            <option value="category" @selected($filters['sort'] === 'category')>Category</option>
+                            <option value="vendor_name" @selected($filters['sort'] === 'vendor_name')>Vendor</option>
+                            <option value="payment_status" @selected($filters['sort'] === 'payment_status')>Status</option>
+                            <option value="total_amount" @selected($filters['sort'] === 'total_amount')>Total</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Newest / High first</option>
+                            <option value="asc" @selected($filters['direction'] === 'asc')>Oldest / Low first</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <x-lucide-search class="w-4 h-4"/>
+                        Apply
+                    </button>
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table class="table modern-table align-middle">
                     <thead>
@@ -184,6 +241,42 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$expenses"/>
         </section>
     </div>
 @endsection
+
+@push('js')
+    <script type="module">
+        function initLookupSelect(selector, url, placeholder) {
+            $(selector).each(function () {
+                const select = $(this);
+                if (select.data('select2')) {
+                    return;
+                }
+
+                select.select2({
+                    ajax: {
+                        url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({q: params.term || ''}),
+                        processResults: (data) => data,
+                    },
+                    minimumInputLength: 1,
+                    placeholder,
+                    allowClear: true,
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                });
+            });
+        }
+
+        $(function () {
+            initLookupSelect('.js-rental-lookup', @json(route('lookups.rentals')), 'Search rental by RTN, customer, or location');
+            initLookupSelect('.js-customer-lookup', @json(route('lookups.customers')), 'Search customer by company, contact, email, or phone');
+            initLookupSelect('.js-product-lookup', @json(route('lookups.products')), 'Search equipment by name, code, serial, or category');
+        });
+    </script>
+@endpush

@@ -17,23 +17,69 @@ class InvoiceController extends Controller
 {
     public function __construct(private ActivityLogger $activity) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $invoices = Invoice::with(['customer', 'rental', 'payments', 'creditNotes'])
-            ->latest()
-            ->get()
-            ->each(fn (Invoice $invoice) => $invoice->recalculateTotals());
+        $search = trim((string) $request->input('search'));
+        $status = (string) $request->input('status', 'all');
+        $sort = (string) $request->input('sort', 'invoice_date');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['invoice_date', 'due_date', 'customer', 'status', 'total_amount', 'balance_due'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'invoice_date';
+
+        $invoices = Invoice::query()
+            ->with(['customer', 'rental', 'payments', 'creditNotes'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $rentalId = (int) str_replace('RTN-', '', strtoupper($search));
+
+                $query->where(function ($query) use ($search, $rentalId): void {
+                    $query->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhere('rental_id', $rentalId)
+                        ->orWhereHas('customer', function ($query) use ($search): void {
+                            $query->where('company_name', 'like', "%{$search}%")
+                                ->orWhere('contact_person', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($status !== 'all', function ($query) use ($status): void {
+                if ($status === 'overdue') {
+                    $query->where('status', '!=', 'paid')
+                        ->whereNotNull('due_date')
+                        ->whereDate('due_date', '<', now()->toDateString());
+
+                    return;
+                }
+
+                $query->where('status', $status);
+            });
+
+        if ($sort === 'customer') {
+            $invoices->leftJoin('customers', 'invoices.customer_id', '=', 'customers.id')
+                ->select('invoices.*')
+                ->orderBy('customers.company_name', $direction);
+        } else {
+            $invoices->orderBy($sort, $direction);
+        }
+
+        $invoices = $invoices->orderByDesc('invoices.id')->paginate(25)->withQueryString();
+        $total = (float) Invoice::sum('base_total_amount');
+        $balance = (float) Invoice::sum('base_balance_due');
 
         return view('invoices.index', [
             'invoices' => $invoices,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
             'summary' => [
-                'total' => (float) $invoices->sum('total_amount'),
-                'paid' => (float) $invoices->sum('paid_amount'),
-                'balance' => (float) $invoices->sum('balance_due'),
-                'overdue' => $invoices
-                    ->filter(fn (Invoice $invoice): bool => $invoice->status !== 'paid'
-                        && $invoice->due_date
-                        && now()->toDateString() > $invoice->due_date->toDateString())
+                'total' => $total,
+                'paid' => max(0, $total - $balance),
+                'balance' => $balance,
+                'overdue' => Invoice::where('status', '!=', 'paid')
+                    ->whereNotNull('due_date')
+                    ->whereDate('due_date', '<', now()->toDateString())
                     ->count(),
             ],
         ]);

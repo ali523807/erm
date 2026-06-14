@@ -9,21 +9,6 @@
 
         return $fieldValue;
     };
-    $rentalProductOptions = $products->map(fn ($product) => [
-        'id' => $product->id,
-        'name' => $product->name,
-        'code' => $product->equipment_code,
-        'rate' => $product->default_rate,
-        'rateType' => $product->default_rate_type,
-        'deposit' => $product->default_deposit_amount,
-        'rates' => [
-            'hourly' => $product->hourly_rate,
-            'daily' => $product->daily_rate,
-            'weekly' => $product->weekly_rate,
-            'monthly' => $product->monthly_rate,
-            'custom' => $product->custom_rate,
-        ],
-    ])->values();
 @endphp
 
 @if($errors->any())
@@ -47,11 +32,11 @@
         <div class="row g-3">
             <div class="col-lg-4">
                 <label for="customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
-                <select id="customer_id" name="customer_id" class="form-select" required>
+                <select id="customer_id" name="customer_id" class="form-select js-customer-select" required>
                     <option value="">Select customer</option>
-                    @foreach($customers as $customer)
-                        <option value="{{ $customer->id }}" @selected((string) $value('customer_id') === (string) $customer->id)>{{ $customer->company_name }}</option>
-                    @endforeach
+                    @if($selectedCustomer)
+                        <option value="{{ $selectedCustomer->id }}" selected>{{ collect([$selectedCustomer->company_name, $selectedCustomer->contact_person])->filter()->join(' - ') }}</option>
+                    @endif
                 </select>
             </div>
             <div class="col-lg-2">
@@ -135,11 +120,54 @@
 
 @push('js')
     <script type="module">
-        const products = @json($rentalProductOptions);
+        const customerLookupUrl = @json(route('lookups.customers'));
+        const productLookupUrl = @json(route('lookups.products'));
+        const selectedProducts = @json($selectedProducts);
         let rentalItems = @json($items);
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function initAjaxSelect(select, url, placeholder) {
+            select.select2({
+                ajax: {
+                    url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({q: params.term || ''}),
+                    processResults: (data) => data,
+                },
+                minimumInputLength: 1,
+                placeholder,
+                allowClear: true,
+                theme: 'bootstrap-5',
+                width: '100%',
+            });
+        }
+
+        function selectedProductMeta(productId) {
+            return selectedProducts[String(productId)] || selectedProducts[Number(productId)] || null;
+        }
+
+        function initProductSelects() {
+            $('.rental-product').each(function () {
+                const select = $(this);
+                if (select.data('select2')) {
+                    return;
+                }
+
+                initAjaxSelect(select, productLookupUrl, 'Search equipment by name, code, serial, or category');
+                const product = selectedProductMeta(select.val());
+                if (product) {
+                    select.data('productMeta', product);
+                }
+
+                select.on('select2:select', function (event) {
+                    $(this).data('productMeta', event.params.data);
+                    $(this).trigger('change');
+                });
+            });
         }
 
         function renderItems() {
@@ -147,11 +175,10 @@
             container.empty();
 
             rentalItems.forEach((item, index) => {
-                const productOptions = products.map((product) => {
-                    const selected = String(product.id) === String(item.product_id) ? 'selected' : '';
-                    const rates = escapeHtml(JSON.stringify(product.rates || {}));
-                    return `<option value="${product.id}" data-rate="${product.rate || 0}" data-rate-type="${product.rateType || 'daily'}" data-deposit="${product.deposit || 0}" data-rates="${rates}" ${selected}>${escapeHtml(product.name)}${product.code ? ` - ${escapeHtml(product.code)}` : ''}</option>`;
-                }).join('');
+                const selectedProduct = selectedProductMeta(item.product_id);
+                const productOptions = selectedProduct
+                    ? `<option value="${selectedProduct.id}" selected>${escapeHtml(selectedProduct.text)}</option>`
+                    : '';
 
                 container.append(`
                     <div class="inline-edit-form rental-item-row" data-index="${index}">
@@ -214,6 +241,7 @@
                 `);
             });
 
+            initProductSelects();
             calculateTotals();
         }
 
@@ -277,29 +305,31 @@
             });
 
             $('#rentalItems').on('change', '.rental-product', function () {
-                const selected = $(this).find(':selected');
                 const row = $(this).closest('.rental-item-row');
-                const rateType = selected.data('rate-type') || 'daily';
-                const rates = selected.data('rates') || {};
+                const product = $(this).data('productMeta') || selectedProductMeta($(this).val()) || {};
+                const rateType = product.rateType || 'daily';
+                const rates = product.rates || {};
                 row.find('.rental-rate-type').val(rateType);
                 if (Number(row.find('.rental-rate').val() || 0) === 0) {
-                    row.find('.rental-rate').val(rates[rateType] || selected.data('rate') || 0);
+                    row.find('.rental-rate').val(rates[rateType] || product.rate || 0);
                 }
                 if (Number(row.find('[name$="[deposit_amount]"]').val() || 0) === 0) {
-                    row.find('[name$="[deposit_amount]"]').val(selected.data('deposit') || 0);
+                    row.find('[name$="[deposit_amount]"]').val(product.deposit || 0);
                 }
                 calculateTotals();
             });
 
             $('#rentalItems').on('change', '.rental-rate-type', function () {
                 const row = $(this).closest('.rental-item-row');
-                const selected = row.find('.rental-product :selected');
-                const rates = selected.data('rates') || {};
+                const productSelect = row.find('.rental-product');
+                const product = productSelect.data('productMeta') || selectedProductMeta(productSelect.val()) || {};
+                const rates = product.rates || {};
                 row.find('.rental-rate').val(rates[$(this).val()] || 0);
                 calculateTotals();
             });
 
             $('#rentalItems').on('input change', '.rental-calc', calculateTotals);
+            initAjaxSelect($('#customer_id'), customerLookupUrl, 'Search customer by company, contact, email, or phone');
         });
     </script>
 @endpush

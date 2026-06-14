@@ -119,7 +119,7 @@
         </div>
 
         <div class="mt-3">
-            {{ $notifications->links() }}
+            <x-pagination :paginator="$notifications"/>
         </div>
     </div>
 @endsection

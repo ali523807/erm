@@ -21,17 +21,23 @@ class CreditNoteController extends Controller
         $creditNotes = CreditNote::with(['invoice', 'customer'])
             ->latest('credit_date')
             ->latest()
-            ->get();
-        $baseAmount = fn (CreditNote $creditNote): float => (float) $creditNote->amount * (float) ($creditNote->invoice?->exchange_rate ?: 1);
-        $baseRefund = fn (CreditNote $creditNote): float => (float) $creditNote->refund_amount * (float) ($creditNote->invoice?->exchange_rate ?: 1);
+            ->paginate(25);
+        $creditTotals = CreditNote::query()
+            ->leftJoin('invoices', 'credit_notes.invoice_id', '=', 'invoices.id')
+            ->where('credit_notes.status', '!=', 'voided')
+            ->selectRaw('
+                COALESCE(SUM(credit_notes.amount * COALESCE(invoices.exchange_rate, 1)), 0) as credited,
+                COALESCE(SUM(credit_notes.refund_amount * COALESCE(invoices.exchange_rate, 1)), 0) as refunded
+            ')
+            ->first();
 
         return view('credit-notes.index', [
             'creditNotes' => $creditNotes,
             'summary' => [
-                'credited' => (float) $creditNotes->where('status', '!=', 'voided')->sum($baseAmount),
-                'refunded' => (float) $creditNotes->where('status', '!=', 'voided')->sum($baseRefund),
-                'count' => $creditNotes->count(),
-                'open' => $creditNotes->where('status', 'applied')->count(),
+                'credited' => (float) $creditTotals->credited,
+                'refunded' => (float) $creditTotals->refunded,
+                'count' => CreditNote::count(),
+                'open' => CreditNote::where('status', 'applied')->count(),
             ],
         ]);
     }

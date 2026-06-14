@@ -29,7 +29,7 @@ class ManualPaymentGateway implements PaymentGateway
             'provider' => $this->provider(),
             'is_live' => false,
             'checkout_url' => null,
-            'message' => 'Manual demo mode records the payment inside ERM without contacting a gateway.',
+            'message' => 'Manual demo mode records the payment inside RentalHook without contacting a gateway.',
         ];
     }
 }

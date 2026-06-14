@@ -1,3 +1,5 @@
+@php($money = app(\App\Support\Money::class))
+
 <div class="row g-3">
     <div class="col-md-4">
         <label for="credit_date" class="form-label">Credit Date</label>
@@ -7,7 +9,7 @@
     <div class="col-md-4">
         <label for="amount" class="form-label">Credit Amount</label>
         <input id="amount" name="amount" type="number" step="0.01" min="0.01" max="{{ $availableCreditAmount }}" class="form-control" value="{{ old('amount', $creditNote->amount) }}" required>
-        <div class="form-text">Maximum available: {{ number_format((float) $availableCreditAmount, 2) }}.</div>
+        <div class="form-text">Maximum available: {{ $money->format($availableCreditAmount, $creditNote->invoice?->currency) }}.</div>
     </div>
     <div class="col-md-4">
         <label for="reason" class="form-label">Reason</label>

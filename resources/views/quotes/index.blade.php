@@ -23,6 +23,49 @@
         @endif
 
         <section class="panel">
+            <div class="list-toolbar">
+                <div>
+                    <h2 class="mb-1">Quote Register</h2>
+                    <p class="text-muted mb-0">Search, filter, and sort quote records without loading the full dataset.</p>
+                </div>
+                <form method="GET" action="{{ route('quotes.index') }}">
+                    <div>
+                        <label for="search" class="form-label">Search</label>
+                        <input id="search" name="search" class="form-control" value="{{ $filters['search'] }}" placeholder="Quote, customer, location">
+                    </div>
+                    <div>
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="all" @selected($filters['status'] === 'all')>All statuses</option>
+                            @foreach($statuses as $value => $label)
+                                <option value="{{ $value }}" @selected($filters['status'] === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="quote_date" @selected($filters['sort'] === 'quote_date')>Quote date</option>
+                            <option value="quote_number" @selected($filters['sort'] === 'quote_number')>Quote number</option>
+                            <option value="customer" @selected($filters['sort'] === 'customer')>Customer</option>
+                            <option value="status" @selected($filters['sort'] === 'status')>Status</option>
+                            <option value="total_amount" @selected($filters['sort'] === 'total_amount')>Total</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Newest / High first</option>
+                            <option value="asc" @selected($filters['direction'] === 'asc')>Oldest / Low first</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <x-lucide-search class="w-4 h-4"/>
+                        Apply
+                    </button>
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table class="table modern-table align-middle">
                     <thead>
@@ -72,6 +115,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$quotes"/>
         </section>
     </div>
 @endsection

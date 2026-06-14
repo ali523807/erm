@@ -3,6 +3,7 @@
 @section('title', $agreement->agreement_number)
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -64,8 +65,8 @@
                                     </td>
                                     <td>{{ $item->start_date }} - {{ $item->end_date }}</td>
                                     <td>{{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type }}</td>
-                                    <td>{{ number_format((float) $item->rate, 2) }}</td>
-                                    <td>{{ number_format((float) $item->deposit_amount, 2) }}</td>
+                                    <td>{{ $money->format($item->rate) }}</td>
+                                    <td>{{ $money->format($item->deposit_amount) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -110,7 +111,7 @@
                         </div>
                         <div>
                             <dt>Damage Charge</dt>
-                            <dd>{{ number_format((float) $agreement->damage_amount, 2) }}</dd>
+                            <dd>{{ $money->format($agreement->damage_amount) }}</dd>
                         </div>
                     </dl>
                 </section>
@@ -236,7 +237,7 @@
                                             @endif
                                         </td>
                                         <td><span class="badge badge-soft-secondary">{{ $nextEquipmentStatuses[$inspection->next_equipment_status] ?? str($inspection->next_equipment_status)->headline() }}</span></td>
-                                        <td>{{ number_format((float) $inspection->damage_amount, 2) }}</td>
+                                        <td>{{ $money->format($inspection->damage_amount) }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="4" class="text-center text-muted py-4">No item inspection rows recorded.</td></tr>

@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaintenanceLog;
-use App\Models\Product;
 use App\Models\ReturnInspection;
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,11 +64,7 @@ class MaintenanceController extends Controller
             'logs' => MaintenanceLog::with(['product.category', 'assignee', 'returnInspection.product'])
                 ->latest('scheduled_at')
                 ->latest()
-                ->get(),
-            'products' => Product::with('category')->orderBy('name')->get(),
-            'teamMembers' => User::whereHas('companies', fn ($query) => $query->where('companies.id', $companyId))
-                ->orderBy('name')
-                ->get(),
+                ->paginate(25),
             'returnInspections' => ReturnInspection::with(['product', 'rental.customer'])
                 ->whereIn('next_equipment_status', ['maintenance', 'damaged'])
                 ->latest('inspected_at')

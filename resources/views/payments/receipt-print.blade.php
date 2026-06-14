@@ -153,7 +153,7 @@
     <main class="receipt">
         <div class="header">
             <div>
-                <div class="brand">{{ $company?->name ?? 'ERM Cloud' }}</div>
+                <div class="brand">{{ $company?->name ?? 'RentalHook' }}</div>
                 <div class="muted">{{ $company?->email }}</div>
             </div>
             <div>

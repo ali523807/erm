@@ -27,30 +27,30 @@
 
     <div class="col-md-4">
         <label for="rental_id_{{ $suffix }}" class="form-label">Rental Job</label>
-        <select id="rental_id_{{ $suffix }}" name="rental_id" class="form-select">
+        <select id="rental_id_{{ $suffix }}" name="rental_id" class="form-select js-rental-lookup">
             <option value="">General / Not linked</option>
-            @foreach($rentals as $rental)
-                <option value="{{ $rental->id }}" @selected((string) $fieldValue('rental_id') === (string) $rental->id)>RTN-{{ $rental->id }} - {{ $rental->customer?->company_name }}</option>
-            @endforeach
+            @if($expense?->rental)
+                <option value="{{ $expense->rental->id }}" selected>RTN-{{ $expense->rental->id }} - {{ $expense->rental->customer?->company_name }}</option>
+            @endif
         </select>
         <div class="form-text">Use this for job profitability and rental-level cost history.</div>
     </div>
     <div class="col-md-4">
         <label for="customer_id_{{ $suffix }}" class="form-label">Customer</label>
-        <select id="customer_id_{{ $suffix }}" name="customer_id" class="form-select">
+        <select id="customer_id_{{ $suffix }}" name="customer_id" class="form-select js-customer-lookup">
             <option value="">No customer link</option>
-            @foreach($customers as $customer)
-                <option value="{{ $customer->id }}" @selected((string) $fieldValue('customer_id') === (string) $customer->id)>{{ $customer->company_name }}</option>
-            @endforeach
+            @if($expense?->customer)
+                <option value="{{ $expense->customer->id }}" selected>{{ collect([$expense->customer->company_name, $expense->customer->contact_person])->filter()->join(' - ') }}</option>
+            @endif
         </select>
     </div>
     <div class="col-md-4">
         <label for="product_id_{{ $suffix }}" class="form-label">Equipment</label>
-        <select id="product_id_{{ $suffix }}" name="product_id" class="form-select">
+        <select id="product_id_{{ $suffix }}" name="product_id" class="form-select js-product-lookup">
             <option value="">No equipment link</option>
-            @foreach($products as $product)
-                <option value="{{ $product->id }}" @selected((string) $fieldValue('product_id') === (string) $product->id)>{{ $product->name }}{{ $product->equipment_code ? ' - '.$product->equipment_code : '' }}</option>
-            @endforeach
+            @if($expense?->product)
+                <option value="{{ $expense->product->id }}" selected>{{ collect([$expense->product->equipment_code, $expense->product->name])->filter()->join(' - ') }}</option>
+            @endif
         </select>
     </div>
 

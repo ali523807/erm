@@ -68,7 +68,7 @@
                 </table>
             </div>
 
-            {{ $deliveries->links() }}
+            <x-pagination :paginator="$deliveries"/>
         </section>
     </div>
 @endsection

@@ -3,6 +3,7 @@
 @section('title', 'Quotes')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="page-header"><div><span class="eyebrow">Portal</span><h1>Quotes</h1><p>Review and respond to open quotations.</p></div></div>
     @if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
     <section class="panel">
@@ -15,7 +16,7 @@
                         <td><strong>{{ $quote->quote_number }}</strong><span class="d-block text-muted small">{{ $quote->items->count() }} item(s)</span></td>
                         <td>{{ $quote->rental_start_date?->format('Y-m-d') }} - {{ $quote->rental_end_date?->format('Y-m-d') }}</td>
                         <td>{{ str($quote->status)->headline() }}</td>
-                        <td>{{ number_format((float) $quote->total_amount, 2) }}</td>
+                        <td>{{ $money->format($quote->total_amount, $quote->currency) }}</td>
                         <td class="text-end">
                             @if(in_array($quote->status, ['draft', 'sent'], true))
                                 <form method="POST" action="{{ route('customer-portal.quotes.status', $quote) }}" class="d-inline">@csrf @method('PATCH')<input type="hidden" name="status" value="accepted"><button class="btn btn-sm btn-soft-primary">Accept</button></form>

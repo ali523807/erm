@@ -43,6 +43,11 @@ class SubscriptionModuleCatalog
                 'description' => 'Company profile and team member management.',
                 'permissions' => ['company.manage', 'team.manage'],
             ],
+            'notifications' => [
+                'label' => 'Notifications',
+                'description' => 'Reminders, alerts, and generated operational follow-ups.',
+                'permissions' => ['notifications.manage'],
+            ],
             'dispatch' => [
                 'label' => 'Dispatch & Returns',
                 'description' => 'Dispatch board, returns, movements, and close-out flow.',
@@ -94,6 +99,7 @@ class SubscriptionModuleCatalog
                 'rental_desk',
                 'basic_billing',
                 'company_setup',
+                'notifications',
             ],
             'business' => [
                 'dashboard',
@@ -102,6 +108,7 @@ class SubscriptionModuleCatalog
                 'rental_desk',
                 'basic_billing',
                 'company_setup',
+                'notifications',
                 'dispatch',
                 'payments',
                 'maintenance',

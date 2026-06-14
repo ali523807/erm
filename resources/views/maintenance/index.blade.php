@@ -3,6 +3,7 @@
 @section('title', 'Maintenance Work Orders')
 
 @php
+    $money = app(\App\Support\Money::class);
     $statusBadge = [
         'open' => 'badge-soft-primary',
         'scheduled' => 'badge-soft-info',
@@ -132,8 +133,8 @@
                                 </span>
                             </td>
                             <td>
-                                {{ number_format((float) $log->cost, 2) }}
-                                <div class="text-muted text-xs">P {{ number_format((float) $log->parts_cost, 2) }} / L {{ number_format((float) $log->labor_cost, 2) }} / V {{ number_format((float) $log->vendor_cost, 2) }}</div>
+                                {{ $money->format($log->cost) }}
+                                <div class="text-muted text-xs">P {{ $money->format($log->parts_cost) }} / L {{ $money->format($log->labor_cost) }} / V {{ $money->format($log->vendor_cost) }}</div>
                             </td>
                             <td class="text-end">
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#maintenance-edit-{{ $log->id }}">
@@ -166,6 +167,43 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="px-3 pb-3">
+                <x-pagination :paginator="$logs"/>
+            </div>
         </section>
     </div>
 @endsection
+
+@push('js')
+    <script type="module">
+        function initLookupSelect(selector, url, placeholder) {
+            $(selector).each(function () {
+                const select = $(this);
+                if (select.data('select2')) {
+                    return;
+                }
+
+                select.select2({
+                    ajax: {
+                        url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({q: params.term || ''}),
+                        processResults: (data) => data,
+                    },
+                    minimumInputLength: 1,
+                    placeholder,
+                    allowClear: true,
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                });
+            });
+        }
+
+        $(function () {
+            initLookupSelect('.js-product-lookup', @json(route('lookups.products')), 'Search equipment by name, code, serial, or category');
+            initLookupSelect('.js-team-lookup', @json(route('lookups.team-members')), 'Search team member by name or email');
+        });
+    </script>
+@endpush

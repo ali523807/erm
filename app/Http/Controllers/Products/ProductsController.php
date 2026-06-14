@@ -11,12 +11,13 @@ use App\Models\ProductAttribute;
 use App\Models\StorageLocation;
 use App\Models\Warehouse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Yajra\DataTables\DataTables;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProductsController extends Controller
 {
@@ -57,9 +58,12 @@ class ProductsController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         if ($request->ajax()) {
-            $products = Product::with(['category', 'branch', 'warehouse', 'storageLocation'])->latest()->get();
+            $products = Product::query()
+                ->with(['category', 'branch', 'warehouse', 'storageLocation'])
+                ->select('products.*')
+                ->latest('products.created_at');
 
-            return DataTables::of($products)
+            return DataTables::eloquent($products)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     return view('products._actions', ['product' => $row])->render();
@@ -68,12 +72,36 @@ class ProductsController extends Controller
                     return view('products._status', ['product' => $row])->render();
                 })
                 ->addColumn('asset_status', fn ($row) => str($row->status ?: 'available')->headline())
+                ->addColumn('category_name', fn ($row) => $row->category?->name ?? '-')
                 ->addColumn('location_name', function ($row) {
                     return collect([
                         $row->branch?->name,
                         $row->warehouse?->name,
                         $row->storageLocation?->name,
                     ])->filter()->join(' / ') ?: ($row->location ?: 'Unassigned');
+                })
+                ->filterColumn('category_name', function (Builder $query, string $keyword): void {
+                    $query->whereHas('category', function (Builder $categoryQuery) use ($keyword): void {
+                        $categoryQuery->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('asset_status', function (Builder $query, string $keyword): void {
+                    $query->where('products.status', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('location_name', function (Builder $query, string $keyword): void {
+                    $query->where(function (Builder $locationQuery) use ($keyword): void {
+                        $locationQuery
+                            ->where('products.location', 'like', "%{$keyword}%")
+                            ->orWhereHas('branch', function (Builder $branchQuery) use ($keyword): void {
+                                $branchQuery->where('name', 'like', "%{$keyword}%");
+                            })
+                            ->orWhereHas('warehouse', function (Builder $warehouseQuery) use ($keyword): void {
+                                $warehouseQuery->where('name', 'like', "%{$keyword}%");
+                            })
+                            ->orWhereHas('storageLocation', function (Builder $storageLocationQuery) use ($keyword): void {
+                                $storageLocationQuery->where('name', 'like', "%{$keyword}%");
+                            });
+                    });
                 })
                 ->rawColumns(['action', 'status', 'asset_status', 'location_name'])
                 ->make(true);

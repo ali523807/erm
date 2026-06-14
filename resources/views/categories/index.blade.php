@@ -47,11 +47,12 @@
                 serverSide: true,
                 ajax: "{{ route('categories.index') }}",
                 columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'name', name: 'name'},
                     {data: 'description', name: 'description'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
+                order: [[1, 'asc']],
             });
 
             $('#add-category-btn').click(function () {

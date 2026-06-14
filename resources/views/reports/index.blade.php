@@ -3,6 +3,7 @@
 @section('title', 'Reports')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -33,21 +34,21 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Invoiced</span>
-                    <h2 class="mb-0">{{ number_format($summary['invoiced'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['invoiced']) }}</h2>
                     <p class="text-muted mb-0">Within selected range</p>
                 </section>
             </div>
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Collected</span>
-                    <h2 class="mb-0">{{ number_format($summary['collected'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['collected']) }}</h2>
                     <p class="text-muted mb-0">Payments received</p>
                 </section>
             </div>
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Outstanding</span>
-                    <h2 class="mb-0">{{ number_format($summary['outstanding'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['outstanding']) }}</h2>
                     <p class="text-muted mb-0">Open balance all time</p>
                 </section>
             </div>
@@ -64,21 +65,21 @@
             <div class="col-md-4">
                 <section class="metric-card soft-rose">
                     <span>Operating Expenses</span>
-                    <strong>{{ number_format($summary['operatingCost'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['operatingCost']) }}</strong>
                     <small>General rental operating costs</small>
                 </section>
             </div>
             <div class="col-md-4">
                 <section class="metric-card soft-amber">
                     <span>Maintenance Cost</span>
-                    <strong>{{ number_format($summary['maintenanceCost'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['maintenanceCost']) }}</strong>
                     <small>Asset service and repair spend</small>
                 </section>
             </div>
             <div class="col-md-4">
                 <section class="metric-card soft-green">
                     <span>Net Profit</span>
-                    <strong>{{ number_format($summary['netProfit'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['netProfit']) }}</strong>
                     <small>{{ number_format($summary['marginPercent'], 2) }}% margin after costs and credits</small>
                 </section>
             </div>
@@ -88,14 +89,14 @@
             <div class="col-md-4">
                 <section class="metric-card soft-blue">
                     <span>Credits</span>
-                    <strong>{{ number_format($summary['credits'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['credits']) }}</strong>
                     <small>Customer credits reducing revenue</small>
                 </section>
             </div>
             <div class="col-md-4">
                 <section class="metric-card soft-amber">
                     <span>Unrecovered Billable</span>
-                    <strong>{{ number_format($summary['unrecoveredBillable'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['unrecoveredBillable']) }}</strong>
                     <small>Billable expenses not fully recovered</small>
                 </section>
             </div>
@@ -137,11 +138,11 @@
                                 <tr>
                                     <td><a href="{{ route('rentals.show', $row['rental_id']) }}">RTN-{{ $row['rental_id'] }}</a></td>
                                     <td>{{ $row['customer'] }}</td>
-                                    <td>{{ number_format($row['revenue'], 2) }}</td>
-                                    <td>{{ number_format($row['credits'], 2) }}</td>
-                                    <td>{{ number_format($row['expenses'], 2) }}</td>
-                                    <td>{{ number_format($row['maintenance'], 2) }}</td>
-                                    <td>{{ number_format($row['net'], 2) }}</td>
+                                    <td>{{ $money->format($row['revenue']) }}</td>
+                                    <td>{{ $money->format($row['credits']) }}</td>
+                                    <td>{{ $money->format($row['expenses']) }}</td>
+                                    <td>{{ $money->format($row['maintenance']) }}</td>
+                                    <td>{{ $money->format($row['net']) }}</td>
                                     <td>{{ number_format($row['margin'], 2) }}%</td>
                                     <td>
                                         <span class="badge {{ $row['status'] === 'Loss' ? 'badge-soft-danger' : ($row['status'] === 'Low Margin' ? 'badge-soft-warning' : 'badge-soft-success') }}">
@@ -185,9 +186,9 @@
                                 <tr>
                                     <td>{{ $row['customer'] }}</td>
                                     <td>{{ $row['rentals'] }}</td>
-                                    <td>{{ number_format($row['revenue'], 2) }}</td>
-                                    <td>{{ number_format($row['cost'], 2) }}</td>
-                                    <td>{{ number_format($row['net'], 2) }}</td>
+                                    <td>{{ $money->format($row['revenue']) }}</td>
+                                    <td>{{ $money->format($row['cost']) }}</td>
+                                    <td>{{ $money->format($row['net']) }}</td>
                                     <td>{{ number_format($row['margin'], 2) }}%</td>
                                 </tr>
                             @empty
@@ -224,9 +225,9 @@
                                 <tr>
                                     <td>{{ $row['equipment'] }}</td>
                                     <td>{{ $row['rentals'] }}</td>
-                                    <td>{{ number_format($row['revenue'], 2) }}</td>
-                                    <td>{{ number_format($row['expenses'] + $row['maintenance'], 2) }}</td>
-                                    <td>{{ number_format($row['net'], 2) }}</td>
+                                    <td>{{ $money->format($row['revenue']) }}</td>
+                                    <td>{{ $money->format($row['expenses'] + $row['maintenance']) }}</td>
+                                    <td>{{ $money->format($row['net']) }}</td>
                                     <td>{{ number_format($row['margin'], 2) }}%</td>
                                 </tr>
                             @empty
@@ -260,7 +261,7 @@
                             @forelse($monthlyRevenue as $row)
                                 <tr>
                                     <td>{{ $row['month'] }}</td>
-                                    <td>{{ number_format($row['amount'], 2) }}</td>
+                                    <td>{{ $money->format($row['amount']) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="2" class="text-center text-muted py-4">No invoice revenue in this range.</td></tr>
@@ -325,8 +326,8 @@
                             @forelse($topCustomers as $row)
                                 <tr>
                                     <td>{{ $row['customer'] }}</td>
-                                    <td>{{ number_format($row['invoiced'], 2) }}</td>
-                                    <td>{{ number_format($row['balance'], 2) }}</td>
+                                    <td>{{ $money->format($row['invoiced']) }}</td>
+                                    <td>{{ $money->format($row['balance']) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="3" class="text-center text-muted py-4">No customer invoice data in this range.</td></tr>
@@ -361,7 +362,7 @@
                                     <td>{{ $row['equipment'] }}</td>
                                     <td>{{ $row['rentals'] }}</td>
                                     <td>{{ number_format($row['days'], 2) }}</td>
-                                    <td>{{ number_format($row['revenue'], 2) }}</td>
+                                    <td>{{ $money->format($row['revenue']) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No equipment usage in this range.</td></tr>
@@ -377,7 +378,7 @@
             <div class="col-md-4">
                 <section class="panel h-100">
                     <span class="eyebrow">Damage Charges</span>
-                    <h2 class="mb-0">{{ number_format($summary['damage'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['damage']) }}</h2>
                     <p class="text-muted mb-0">Invoice damage charges in range</p>
                 </section>
             </div>
@@ -390,7 +391,7 @@
                         </div>
                         <div class="text-end">
                             <span class="eyebrow">Total Cost</span>
-                            <h2 class="mb-0">{{ number_format($summary['operatingCost'], 2) }}</h2>
+                            <h2 class="mb-0">{{ $money->format($summary['operatingCost']) }}</h2>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -408,8 +409,8 @@
                                 <tr>
                                     <td>{{ str($row['category'])->headline() }}</td>
                                     <td>{{ $row['count'] }}</td>
-                                    <td>{{ number_format($row['cost'], 2) }}</td>
-                                    <td>{{ number_format($row['billable'], 2) }}</td>
+                                    <td>{{ $money->format($row['cost']) }}</td>
+                                    <td>{{ $money->format($row['billable']) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No operating expenses in this range.</td></tr>
@@ -431,7 +432,7 @@
                         </div>
                         <div class="text-end">
                             <span class="eyebrow">Total Cost</span>
-                            <h2 class="mb-0">{{ number_format($summary['maintenanceCost'], 2) }}</h2>
+                            <h2 class="mb-0">{{ $money->format($summary['maintenanceCost']) }}</h2>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -449,7 +450,7 @@
                                 <tr>
                                     <td>{{ $row['equipment'] }}</td>
                                     <td>{{ $row['count'] }}</td>
-                                    <td>{{ number_format($row['cost'], 2) }}</td>
+                                    <td>{{ $money->format($row['cost']) }}</td>
                                     <td>{{ number_format($row['downtime'], 2) }} hrs</td>
                                 </tr>
                             @empty

@@ -90,8 +90,8 @@ class SampleCompanySeeder extends Seeder
 
         $this->createTeamMembers($company);
 
-        $plan = SubscriptionPlan::where('slug', 'starter')->first()
-            ?? SubscriptionPlan::orderBy('monthly_price')->first();
+        $plan = SubscriptionPlan::where('slug', 'enterprise')->first()
+            ?? SubscriptionPlan::orderByDesc('monthly_price')->first();
 
         if ($plan) {
             CompanySubscription::create([
@@ -104,7 +104,7 @@ class SampleCompanySeeder extends Seeder
                 'current_period_starts_at' => now()->startOfMonth(),
                 'current_period_ends_at' => now()->endOfMonth(),
                 'next_billing_at' => now()->addMonth()->startOfMonth(),
-                'notes' => 'Sample starter subscription for module access testing.',
+                'notes' => 'Sample enterprise subscription with all modules enabled for demo testing.',
             ]);
         }
 

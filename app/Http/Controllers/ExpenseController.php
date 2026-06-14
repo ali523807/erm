@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Models\Expense;
-use App\Models\Product;
 use App\Models\Rental;
 use App\Services\ActivityLogger;
 use Illuminate\Contracts\View\View;
@@ -56,28 +54,69 @@ class ExpenseController extends Controller
 
     public function __construct(private ActivityLogger $activity) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $expenses = Expense::with(['rental.customer', 'rental.invoice', 'customer', 'product', 'creator', 'invoice'])
-            ->latest('expense_date')
-            ->latest()
-            ->get();
+        $search = trim((string) $request->input('search'));
+        $category = (string) $request->input('category', 'all');
+        $paymentStatus = (string) $request->input('payment_status', 'all');
+        $billable = (string) $request->input('billable', 'all');
+        $sort = (string) $request->input('sort', 'expense_date');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['expense_date', 'category', 'vendor_name', 'payment_status', 'total_amount'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'expense_date';
+
+        $expenses = Expense::query()
+            ->with(['rental.customer', 'rental.invoice', 'customer', 'product', 'creator', 'invoice'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $rentalId = (int) str_replace('RTN-', '', strtoupper($search));
+
+                $query->where(function ($query) use ($search, $rentalId): void {
+                    $query->where('expense_number', 'like', "%{$search}%")
+                        ->orWhere('vendor_name', 'like', "%{$search}%")
+                        ->orWhere('reference', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('rental_id', $rentalId)
+                        ->orWhereHas('customer', function ($query) use ($search): void {
+                            $query->where('company_name', 'like', "%{$search}%")
+                                ->orWhere('contact_person', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('product', function ($query) use ($search): void {
+                            $query->where('name', 'like', "%{$search}%")
+                                ->orWhere('equipment_code', 'like', "%{$search}%")
+                                ->orWhere('serial_number', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($category !== 'all' && array_key_exists($category, $this->categories), fn ($query) => $query->where('category', $category))
+            ->when($paymentStatus !== 'all' && array_key_exists($paymentStatus, $this->paymentStatuses), fn ($query) => $query->where('payment_status', $paymentStatus))
+            ->when($billable === 'yes', fn ($query) => $query->where('is_billable', true))
+            ->when($billable === 'no', fn ($query) => $query->where('is_billable', false))
+            ->orderBy($sort, $direction)
+            ->orderByDesc('id')
+            ->paginate(25)
+            ->withQueryString();
 
         return view('expenses.index', [
             'expenses' => $expenses,
-            'customers' => Customer::orderBy('company_name')->get(),
-            'rentals' => Rental::with('customer')->latest()->limit(100)->get(),
-            'products' => Product::orderBy('name')->get(),
             'categories' => $this->categories,
             'paymentStatuses' => $this->paymentStatuses,
             'paymentMethods' => $this->paymentMethods,
+            'filters' => [
+                'search' => $search,
+                'category' => $category,
+                'payment_status' => $paymentStatus,
+                'billable' => $billable,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
             'summary' => [
-                'total' => (float) $expenses->where('payment_status', '!=', 'voided')->sum('total_amount'),
-                'paid' => (float) $expenses->where('payment_status', 'paid')->sum('total_amount'),
-                'unpaid' => (float) $expenses->where('payment_status', 'unpaid')->sum('total_amount'),
-                'billable' => (float) $expenses->where('is_billable', true)->where('payment_status', '!=', 'voided')->sum('total_amount'),
-                'uninvoicedBillable' => (float) $expenses->where('is_billable', true)->where('recovery_status', 'not_invoiced')->sum('total_amount'),
-                'recovered' => (float) $expenses->where('recovery_status', 'recovered')->sum('total_amount'),
+                'total' => (float) Expense::where('payment_status', '!=', 'voided')->sum('total_amount'),
+                'paid' => (float) Expense::where('payment_status', 'paid')->sum('total_amount'),
+                'unpaid' => (float) Expense::where('payment_status', 'unpaid')->sum('total_amount'),
+                'billable' => (float) Expense::where('is_billable', true)->where('payment_status', '!=', 'voided')->sum('total_amount'),
+                'uninvoicedBillable' => (float) Expense::where('is_billable', true)->where('recovery_status', 'not_invoiced')->sum('total_amount'),
+                'recovered' => (float) Expense::where('recovery_status', 'recovered')->sum('total_amount'),
             ],
         ]);
     }

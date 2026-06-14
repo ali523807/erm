@@ -20,13 +20,11 @@
 
     <div class="col-lg-4">
         <label class="form-label" for="product_id_{{ $log?->id ?? 'new' }}">Equipment <span class="text-danger">*</span></label>
-        <select id="product_id_{{ $log?->id ?? 'new' }}" name="product_id" class="form-select" required>
+        <select id="product_id_{{ $log?->id ?? 'new' }}" name="product_id" class="form-select js-product-lookup" required>
             <option value="">Select equipment</option>
-            @foreach($products as $product)
-                <option value="{{ $product->id }}" @selected((string) $value('product_id') === (string) $product->id)>
-                    {{ $product->name }}{{ $product->equipment_code ? ' · '.$product->equipment_code : '' }}
-                </option>
-            @endforeach
+            @if($log?->product)
+                <option value="{{ $log->product->id }}" selected>{{ collect([$log->product->equipment_code, $log->product->name, $log->product->category?->name])->filter()->join(' - ') }}</option>
+            @endif
         </select>
         <div class="form-text">The asset this service, inspection, or renewal belongs to.</div>
     </div>
@@ -39,11 +37,11 @@
 
     <div class="col-lg-4">
         <label class="form-label" for="assigned_to_{{ $log?->id ?? 'new' }}">Assigned To</label>
-        <select id="assigned_to_{{ $log?->id ?? 'new' }}" name="assigned_to" class="form-select">
+        <select id="assigned_to_{{ $log?->id ?? 'new' }}" name="assigned_to" class="form-select js-team-lookup">
             <option value="">Unassigned</option>
-            @foreach($teamMembers as $member)
-                <option value="{{ $member->id }}" @selected((string) $value('assigned_to') === (string) $member->id)>{{ $member->name }} - {{ $member->email }}</option>
-            @endforeach
+            @if($log?->assignee)
+                <option value="{{ $log->assignee->id }}" selected>{{ $log->assignee->name }} - {{ $log->assignee->email }}</option>
+            @endif
         </select>
     </div>
 

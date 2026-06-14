@@ -108,6 +108,10 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="px-3 pb-3">
+                <x-pagination :paginator="$creditNotes"/>
+            </div>
         </section>
     </div>
 @endsection

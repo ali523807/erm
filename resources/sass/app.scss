@@ -220,6 +220,19 @@ a.sidebar-link {
     width: 36px;
 }
 
+.rentalhook-logo {
+    color: currentColor;
+    display: block;
+    height: 40px;
+    width: 40px;
+}
+
+.brand-mark .rentalhook-logo {
+    color: #ffffff;
+    height: 24px;
+    width: 24px;
+}
+
 .sidebar-nav-heading {
     color: var(--erm-muted);
     font-size: .68rem;
@@ -518,6 +531,94 @@ a.sidebar-link {
 .modern-table tbody td {
     border-color: var(--erm-line);
     padding: .9rem .75rem;
+}
+
+.list-toolbar {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.list-toolbar form {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.list-toolbar .form-label {
+    color: var(--erm-muted);
+    font-size: .72rem;
+    font-weight: 800;
+    margin-bottom: .25rem;
+    text-transform: uppercase;
+}
+
+.list-toolbar .form-control,
+.list-toolbar .form-select {
+    min-width: 180px;
+}
+
+.pagination-shell {
+    align-items: center;
+    border-top: 1px solid var(--erm-line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .85rem;
+    justify-content: space-between;
+    padding: 1rem .25rem 0;
+}
+
+.pagination-summary {
+    color: var(--erm-muted);
+    font-size: .84rem;
+}
+
+.pagination-summary strong {
+    color: var(--erm-ink);
+}
+
+.pagination-list {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    justify-content: center;
+}
+
+.pagination-link {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
+    display: inline-flex;
+    font-weight: 800;
+    height: 36px;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0 .65rem;
+}
+
+.pagination-link:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.pagination-link.is-active {
+    background: #065f46;
+    border-color: #065f46;
+    color: #ffffff;
+}
+
+.pagination-link.is-disabled,
+.pagination-link.is-gap {
+    background: #f8fafc;
+    color: #94a3b8;
+    pointer-events: none;
 }
 
 .detail-grid {
@@ -867,7 +968,7 @@ a.sidebar-link {
 .software-preview-grid {
     display: grid;
     gap: 1rem;
-    grid-template-columns: 1.35fr 1fr 1fr;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr);
 }
 
 .software-preview {
@@ -876,7 +977,8 @@ a.sidebar-link {
     border-radius: 8px;
     box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
     display: grid;
-    gap: .75rem;
+    gap: .6rem;
+    align-content: start;
     padding: 1.25rem;
 }
 
@@ -884,8 +986,22 @@ a.sidebar-link {
     grid-row: span 3;
 }
 
-.software-preview svg {
+.software-preview-icon {
+    align-items: center;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
     color: #047857;
+    display: inline-flex;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+}
+
+.software-preview-icon svg {
+    height: 22px;
+    stroke-width: 2.2;
+    width: 22px;
 }
 
 .software-preview h3 {
@@ -905,6 +1021,7 @@ a.sidebar-link {
     border: 1px solid rgba(255, 255, 255, .1);
     border-radius: 8px;
     box-shadow: 0 20px 44px rgba(15, 23, 42, .18);
+    max-width: 100%;
     overflow: hidden;
 }
 
@@ -939,7 +1056,7 @@ a.sidebar-link {
     background: #f6f7fb;
     display: grid;
     grid-template-columns: 135px minmax(0, 1fr);
-    min-height: 310px;
+    min-height: 300px;
 }
 
 .software-dashboard-mock aside {
@@ -1275,7 +1392,8 @@ a.sidebar-link {
     gap: .5rem;
 }
 
-.pricing-card li svg {
+.pricing-card li svg,
+.pricing-card li span[aria-hidden="true"] {
     color: #047857;
     min-width: 1rem;
 }
@@ -1522,6 +1640,28 @@ a.sidebar-link {
 
     .selected-plan-price {
         text-align: left;
+    }
+
+    .pagination-shell {
+        justify-content: center;
+    }
+
+    .pagination-summary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .list-toolbar,
+    .list-toolbar form {
+        align-items: stretch;
+        display: grid;
+        width: 100%;
+    }
+
+    .list-toolbar .form-control,
+    .list-toolbar .form-select {
+        min-width: 0;
+        width: 100%;
     }
 }
 

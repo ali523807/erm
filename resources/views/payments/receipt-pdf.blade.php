@@ -99,7 +99,7 @@
     @endphp
     <div class="header grid">
         <div class="col">
-            <div class="brand">{{ $company?->name ?? 'ERM Cloud' }}</div>
+            <div class="brand">{{ $company?->name ?? 'RentalHook' }}</div>
             <div class="muted">{{ $company?->email }}</div>
         </div>
         <div class="col right">

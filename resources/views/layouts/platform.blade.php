@@ -21,10 +21,10 @@
     <aside class="platform-sidebar">
         <a href="{{ route('platform.dashboard') }}" class="brand-lockup">
             <span class="brand-mark">
-                <x-lucide-monitor-cog class="w-5 h-5"/>
+                <x-application-logo/>
             </span>
             <span>
-                <strong>ERM Platform</strong>
+                <strong>RentalHook</strong>
                 <small>SaaS owner panel</small>
             </span>
         </a>

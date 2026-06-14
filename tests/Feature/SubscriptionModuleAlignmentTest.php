@@ -8,6 +8,8 @@ use App\Models\StorageLocation;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Support\CompanyRoleCatalog;
+use App\Support\SubscriptionModuleCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -16,6 +18,7 @@ it('limits tenant modules by subscription plan', function () {
     $starterUser = subscriptionModuleUser('starter-owner@example.com', 'starter');
 
     expect($starterUser->hasCurrentCompanyPermission('quotes.manage'))->toBeTrue()
+        ->and($starterUser->hasCurrentCompanyPermission('notifications.manage'))->toBeTrue()
         ->and($starterUser->hasCurrentCompanyPermission('payments.manage'))->toBeFalse()
         ->and($starterUser->hasCurrentCompanyPermission('maintenance.manage'))->toBeFalse()
         ->and($starterUser->hasCurrentCompanyPermission('reports.view'))->toBeFalse();
@@ -27,6 +30,10 @@ it('limits tenant modules by subscription plan', function () {
     $this->actingAs($starterUser)
         ->get(route('payments.index'))
         ->assertForbidden();
+
+    $this->actingAs($starterUser)
+        ->get(route('notifications.index'))
+        ->assertOk();
 });
 
 it('allows business plan companies to use operations and finance modules', function () {
@@ -82,6 +89,38 @@ it('shows equipment warehouse fields for plans with locations module', function 
         ->assertOk()
         ->assertSee('Warehouse / Yard')
         ->assertSee('Storage Location');
+});
+
+it('keeps route permissions registered in the role catalog', function () {
+    $routeFile = file_get_contents(base_path('routes/web.php'));
+    preg_match_all('/company\.permission:([a-z.]+)/', $routeFile, $matches);
+
+    $registeredPermissions = app(CompanyRoleCatalog::class)->permissionKeys();
+
+    expect(array_values(array_diff(array_unique($matches[1]), $registeredPermissions)))->toBe([]);
+});
+
+it('keeps subscription module permissions registered in the role catalog', function () {
+    $registeredPermissions = app(CompanyRoleCatalog::class)->permissionKeys();
+    $modulePermissions = collect(app(SubscriptionModuleCatalog::class)->modules())
+        ->flatMap(fn (array $module): array => $module['permissions'])
+        ->unique()
+        ->values()
+        ->all();
+
+    expect(array_values(array_diff($modulePermissions, $registeredPermissions)))->toBe([]);
+});
+
+it('keeps default role permissions registered in the role catalog', function () {
+    $catalog = app(CompanyRoleCatalog::class);
+    $registeredPermissions = $catalog->permissionKeys();
+    $rolePermissions = collect($catalog->defaultRoles())
+        ->flatMap(fn (array $role): array => $role['permissions'])
+        ->unique()
+        ->values()
+        ->all();
+
+    expect(array_values(array_diff($rolePermissions, $registeredPermissions)))->toBe([]);
 });
 
 function subscriptionModuleUser(string $email, string $planSlug): User

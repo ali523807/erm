@@ -3,6 +3,7 @@
 @section('title', $customer->company_name)
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -55,7 +56,7 @@
             <div class="col-md-3">
                 <section class="panel h-100">
                     <span class="eyebrow">Balance Due</span>
-                    <h2 class="mb-0">{{ number_format($summary['balanceDue'], 2) }}</h2>
+                    <h2 class="mb-0">{{ $money->format($summary['balanceDue']) }}</h2>
                     <p class="text-muted mb-0">Outstanding amount</p>
                 </section>
             </div>
@@ -164,7 +165,7 @@
                                     <td><a href="{{ route('quotes.show', $quote) }}">{{ $quote->quote_number }}</a></td>
                                     <td>{{ $quote->quote_date?->format('Y-m-d') ?: '-' }}</td>
                                     <td><span class="badge badge-soft-secondary">{{ str($quote->status)->headline() }}</span></td>
-                                    <td>{{ number_format((float) $quote->total_amount, 2) }}</td>
+                                    <td>{{ $money->format($quote->total_amount, $quote->currency) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No quotes recorded.</td></tr>
@@ -199,7 +200,7 @@
                                     <td><a href="{{ route('invoices.show', $invoice) }}">{{ $invoice->invoice_number }}</a></td>
                                     <td>{{ $invoice->due_date?->format('Y-m-d') ?: '-' }}</td>
                                     <td><span class="badge badge-soft-secondary">{{ str($invoice->status)->headline() }}</span></td>
-                                    <td>{{ number_format((float) $invoice->balance_due, 2) }}</td>
+                                    <td>{{ $money->format($invoice->balance_due, $invoice->currency) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No invoices recorded.</td></tr>

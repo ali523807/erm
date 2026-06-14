@@ -30,23 +30,60 @@ class RentalsController extends Controller
         'cancelled' => 'Cancelled',
     ];
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $rentals = Rental::with(['customer', 'rentalItems.product', 'quote'])
-            ->latest()
-            ->get();
+        $search = trim((string) $request->input('search'));
+        $status = (string) $request->input('status', 'all');
+        $sort = (string) $request->input('sort', 'rental_start_date');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['rental_start_date', 'rental_end_date', 'customer', 'status', 'amount', 'created_at'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'rental_start_date';
+
+        $rentals = Rental::query()
+            ->with(['customer', 'quote'])
+            ->withCount('rentalItems')
+            ->withSum('rentalItems as rental_items_total_price', 'total_price')
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('id', (int) str_replace('RTN-', '', strtoupper($search)))
+                        ->orWhere('delivery_location', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($query) use ($search): void {
+                            $query->where('company_name', 'like', "%{$search}%")
+                                ->orWhere('contact_person', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($status !== 'all' && array_key_exists($status, $this->statuses), fn ($query) => $query->where('status', $status));
+
+        if ($sort === 'customer') {
+            $rentals->leftJoin('customers', 'rentals.customer_id', '=', 'customers.id')
+                ->select('rentals.*')
+                ->orderBy('customers.company_name', $direction);
+        } elseif ($sort === 'amount') {
+            $rentals->orderBy('rental_items_total_price', $direction);
+        } else {
+            $rentals->orderBy($sort, $direction);
+        }
+
+        $rentals = $rentals->orderByDesc('rentals.id')->paginate(25)->withQueryString();
 
         return view('rentals.index', [
             'rentals' => $rentals,
             'statuses' => $this->statuses,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
             'summary' => [
-                'total' => $rentals->count(),
-                'active' => $rentals->whereIn('status', ['active', 'on_rent', 'open'])->count(),
-                'reserved' => $rentals->where('status', 'reserved')->count(),
-                'overdue' => $rentals
-                    ->filter(fn (Rental $rental): bool => ! in_array($rental->status, ['returned', 'closed', 'cancelled'], true)
-                        && $rental->rental_end_date
-                        && now()->toDateString() > $rental->rental_end_date->toDateString())
+                'total' => Rental::count(),
+                'active' => Rental::whereIn('status', ['active', 'on_rent', 'open'])->count(),
+                'reserved' => Rental::where('status', 'reserved')->count(),
+                'overdue' => Rental::whereNotIn('status', ['returned', 'closed', 'cancelled'])
+                    ->whereNotNull('rental_end_date')
+                    ->whereDate('rental_end_date', '<', now()->toDateString())
                     ->count(),
             ],
         ]);
@@ -115,7 +152,7 @@ class RentalsController extends Controller
 
     public function edit(Rental $rental): View
     {
-        $rental->load('rentalItems');
+        $rental->load(['customer', 'rentalItems.product.category']);
 
         return view('rentals.edit', $this->formData($rental));
     }
@@ -207,30 +244,65 @@ class RentalsController extends Controller
      */
     private function formData(Rental $rental): array
     {
+        $items = old('items', $rental->exists ? $rental->rentalItems->map(fn ($item): array => [
+            'product_id' => $item->product_id,
+            'start_date' => $item->start_date,
+            'end_date' => $item->end_date,
+            'duration_type' => $item->duration_type ?: 'days',
+            'no_of_duration' => $item->no_of_duration,
+            'rate' => $item->rate,
+            'deposit_amount' => $item->deposit_amount,
+            'status' => $item->status ?: 'reserved',
+        ])->values()->all() : [[
+            'product_id' => '',
+            'start_date' => $rental->rental_start_date?->toDateString() ?: now()->toDateString(),
+            'end_date' => $rental->rental_end_date?->toDateString() ?: now()->addDay()->toDateString(),
+            'duration_type' => 'daily',
+            'no_of_duration' => 1,
+            'rate' => 0,
+            'deposit_amount' => 0,
+            'status' => 'reserved',
+        ]]);
+        $customerId = old('customer_id', $rental->customer_id);
+        $selectedCustomer = $customerId ? Customer::find($customerId) : null;
+        $selectedProducts = Product::with('category')
+            ->whereIn('id', collect($items)->pluck('product_id')->filter()->unique()->values())
+            ->get()
+            ->mapWithKeys(fn (Product $product): array => [$product->id => $this->productSelectPayload($product)])
+            ->all();
+
         return [
             'rental' => $rental,
-            'customers' => Customer::orderBy('company_name')->get(),
-            'products' => Product::with('category')->orderBy('name')->get(),
+            'selectedCustomer' => $selectedCustomer,
+            'selectedProducts' => $selectedProducts,
             'statuses' => $this->statuses,
-            'items' => old('items', $rental->exists ? $rental->rentalItems->map(fn ($item): array => [
-                'product_id' => $item->product_id,
-                'start_date' => $item->start_date,
-                'end_date' => $item->end_date,
-                'duration_type' => $item->duration_type ?: 'days',
-                'no_of_duration' => $item->no_of_duration,
-                'rate' => $item->rate,
-                'deposit_amount' => $item->deposit_amount,
-                'status' => $item->status ?: 'reserved',
-            ])->values()->all() : [[
-                'product_id' => '',
-                'start_date' => $rental->rental_start_date?->toDateString() ?: now()->toDateString(),
-                'end_date' => $rental->rental_end_date?->toDateString() ?: now()->addDay()->toDateString(),
-                'duration_type' => 'daily',
-                'no_of_duration' => 1,
-                'rate' => 0,
-                'deposit_amount' => 0,
-                'status' => 'reserved',
-            ]]),
+            'items' => $items,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function productSelectPayload(Product $product): array
+    {
+        return [
+            'id' => $product->id,
+            'text' => collect([
+                $product->equipment_code,
+                $product->name,
+                $product->category?->name,
+                str($product->status ?? 'available')->headline(),
+            ])->filter()->join(' - '),
+            'rate' => (float) $product->default_rate,
+            'rateType' => $product->default_rate_type,
+            'deposit' => (float) $product->default_deposit_amount,
+            'rates' => [
+                'hourly' => (float) $product->hourly_rate,
+                'daily' => (float) $product->daily_rate,
+                'weekly' => (float) $product->weekly_rate,
+                'monthly' => (float) $product->monthly_rate,
+                'custom' => (float) $product->custom_rate,
+            ],
         ];
     }
 

@@ -33,13 +33,47 @@ class QuotesController extends Controller
         'converted' => 'Converted',
     ];
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim((string) $request->input('search'));
+        $status = (string) $request->input('status', 'all');
+        $sort = (string) $request->input('sort', 'quote_date');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['quote_date', 'quote_number', 'customer', 'status', 'total_amount'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'quote_date';
+
+        $quotes = Quote::query()
+            ->with(['customer', 'rental'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('quote_number', 'like', "%{$search}%")
+                        ->orWhere('delivery_location', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($query) use ($search): void {
+                            $query->where('company_name', 'like', "%{$search}%")
+                                ->orWhere('contact_person', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($status !== 'all' && array_key_exists($status, $this->statuses), fn ($query) => $query->where('status', $status));
+
+        if ($sort === 'customer') {
+            $quotes->leftJoin('customers', 'quotes.customer_id', '=', 'customers.id')
+                ->select('quotes.*')
+                ->orderBy('customers.company_name', $direction);
+        } else {
+            $quotes->orderBy($sort, $direction);
+        }
+
         return view('quotes.index', [
-            'quotes' => Quote::with(['customer', 'items.product', 'rental'])
-                ->latest()
-                ->get(),
+            'quotes' => $quotes->orderByDesc('quotes.id')->paginate(25)->withQueryString(),
             'statuses' => $this->statuses,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
         ]);
     }
 
@@ -116,7 +150,7 @@ class QuotesController extends Controller
     {
         abort_if($quote->status === 'converted', 422, 'Converted quotes cannot be edited.');
 
-        $quote->load('items');
+        $quote->load(['customer', 'items.product.category']);
 
         return view('quotes.edit', $this->formData($quote));
     }
@@ -256,31 +290,66 @@ class QuotesController extends Controller
      */
     private function formData(Quote $quote): array
     {
+        $items = old('items', $quote->exists ? $quote->items->map(fn ($item): array => [
+            'product_id' => $item->product_id,
+            'start_date' => $item->start_date?->format('Y-m-d'),
+            'end_date' => $item->end_date?->format('Y-m-d'),
+            'duration_type' => $item->duration_type,
+            'no_of_duration' => $item->no_of_duration,
+            'rate' => $item->rate,
+            'deposit_amount' => $item->deposit_amount,
+            'notes' => $item->notes,
+        ])->values()->all() : [[
+            'product_id' => '',
+            'start_date' => $quote->rental_start_date?->format('Y-m-d') ?? now()->toDateString(),
+            'end_date' => $quote->rental_end_date?->format('Y-m-d') ?? now()->addDay()->toDateString(),
+            'duration_type' => 'daily',
+            'no_of_duration' => 1,
+            'rate' => 0,
+            'deposit_amount' => 0,
+            'notes' => '',
+        ]]);
+        $customerId = old('customer_id', $quote->customer_id);
+        $selectedCustomer = $customerId ? Customer::find($customerId) : null;
+        $selectedProducts = Product::with('category')
+            ->whereIn('id', collect($items)->pluck('product_id')->filter()->unique()->values())
+            ->get()
+            ->mapWithKeys(fn (Product $product): array => [$product->id => $this->productSelectPayload($product)])
+            ->all();
+
         return [
             'quote' => $quote,
-            'customers' => Customer::orderBy('company_name')->get(),
-            'products' => Product::with('category')->orderBy('name')->get(),
+            'selectedCustomer' => $selectedCustomer,
+            'selectedProducts' => $selectedProducts,
             'statuses' => $this->statuses,
             'currencies' => $this->currencies(),
-            'items' => old('items', $quote->exists ? $quote->items->map(fn ($item): array => [
-                'product_id' => $item->product_id,
-                'start_date' => $item->start_date?->format('Y-m-d'),
-                'end_date' => $item->end_date?->format('Y-m-d'),
-                'duration_type' => $item->duration_type,
-                'no_of_duration' => $item->no_of_duration,
-                'rate' => $item->rate,
-                'deposit_amount' => $item->deposit_amount,
-                'notes' => $item->notes,
-            ])->values()->all() : [[
-                'product_id' => '',
-                'start_date' => $quote->rental_start_date?->format('Y-m-d') ?? now()->toDateString(),
-                'end_date' => $quote->rental_end_date?->format('Y-m-d') ?? now()->addDay()->toDateString(),
-                'duration_type' => 'daily',
-                'no_of_duration' => 1,
-                'rate' => 0,
-                'deposit_amount' => 0,
-                'notes' => '',
-            ]]),
+            'items' => $items,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function productSelectPayload(Product $product): array
+    {
+        return [
+            'id' => $product->id,
+            'text' => collect([
+                $product->equipment_code,
+                $product->name,
+                $product->category?->name,
+                str($product->status ?? 'available')->headline(),
+            ])->filter()->join(' - '),
+            'rate' => (float) $product->default_rate,
+            'rateType' => $product->default_rate_type,
+            'deposit' => (float) $product->default_deposit_amount,
+            'rates' => [
+                'hourly' => (float) $product->hourly_rate,
+                'daily' => (float) $product->daily_rate,
+                'weekly' => (float) $product->weekly_rate,
+                'monthly' => (float) $product->monthly_rate,
+                'custom' => (float) $product->custom_rate,
+            ],
         ];
     }
 

@@ -19,6 +19,7 @@ class DashboardController extends Controller
         $today = now()->toDateString();
         $monthStart = now()->startOfMonth()->toDateString();
         $monthEnd = now()->endOfMonth()->toDateString();
+        $companyCurrency = auth()->user()->currentCompany?->currency ?? 'USD';
 
         $equipmentCount = Product::count();
         $availableEquipmentCount = Product::where('status', 'available')->count();
@@ -28,9 +29,16 @@ class DashboardController extends Controller
 
         return view('home', [
             'summary' => [
-                'monthRevenue' => (float) Invoice::whereBetween('invoice_date', [$monthStart, $monthEnd])->sum('total_amount'),
-                'monthCollected' => (float) InvoicePayment::whereBetween('payment_date', [$monthStart, $monthEnd])->sum('amount'),
-                'outstandingBalance' => (float) Invoice::sum('balance_due'),
+                'currency' => $companyCurrency,
+                'monthRevenue' => (float) Invoice::whereBetween('invoice_date', [$monthStart, $monthEnd])
+                    ->get()
+                    ->sum(fn (Invoice $invoice): float => $this->baseInvoiceAmount($invoice, 'total')),
+                'monthCollected' => (float) InvoicePayment::with('invoice')
+                    ->whereBetween('payment_date', [$monthStart, $monthEnd])
+                    ->get()
+                    ->sum(fn (InvoicePayment $payment): float => (float) $payment->amount * (float) ($payment->invoice?->exchange_rate ?: 1)),
+                'outstandingBalance' => (float) Invoice::get()
+                    ->sum(fn (Invoice $invoice): float => $this->baseInvoiceAmount($invoice, 'balance')),
                 'activeRentals' => Rental::whereIn('status', $activeRentalStatuses)->count(),
                 'dueReturns' => Rental::whereIn('status', $activeRentalStatuses)
                     ->whereNotNull('rental_end_date')
@@ -70,5 +78,19 @@ class DashboardController extends Controller
             'subscription' => auth()->user()->currentCompany?->subscription()->with('plan')->first(),
             'rentalItemCount' => RentalItem::count(),
         ]);
+    }
+
+    private function baseInvoiceAmount(Invoice $invoice, string $amountType): float
+    {
+        $baseColumn = $amountType === 'balance' ? 'base_balance_due' : 'base_total_amount';
+        $sourceColumn = $amountType === 'balance' ? 'balance_due' : 'total_amount';
+
+        $baseAmount = (float) $invoice->{$baseColumn};
+
+        if ($baseAmount > 0 || (float) $invoice->{$sourceColumn} <= 0) {
+            return $baseAmount;
+        }
+
+        return round((float) $invoice->{$sourceColumn} * (float) ($invoice->exchange_rate ?: 1), 2);
     }
 }

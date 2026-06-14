@@ -220,7 +220,7 @@
                     </div>
 
                     <div class="mt-3">
-                        {{ $documents->links() }}
+                        <x-pagination :paginator="$documents"/>
                     </div>
                 </section>
             </div>

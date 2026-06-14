@@ -18,6 +18,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\InvoicePaymentLinkController;
+use App\Http\Controllers\LookupController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Platform\Auth\PlatformLoginController;
@@ -80,6 +81,21 @@ Route::prefix('portal')->as('customer-portal.')->group(function () {
 Route::group(['middleware' => ['auth:web', 'company.selected']], function () {
 
     Route::get('/home', DashboardController::class)->middleware('company.permission:dashboard.view')->name('home');
+
+    Route::prefix('lookups')->name('lookups.')->group(function () {
+        Route::get('customers', [LookupController::class, 'customers'])
+            ->middleware('company.permission:customers.manage,quotes.manage,rentals.manage,payments.manage')
+            ->name('customers');
+        Route::get('products', [LookupController::class, 'products'])
+            ->middleware('company.permission:equipment.manage,quotes.manage,rentals.manage,maintenance.manage,payments.manage')
+            ->name('products');
+        Route::get('rentals', [LookupController::class, 'rentals'])
+            ->middleware('company.permission:rentals.manage,payments.manage')
+            ->name('rentals');
+        Route::get('team-members', [LookupController::class, 'teamMembers'])
+            ->middleware('company.permission:team.manage,maintenance.manage')
+            ->name('team-members');
+    });
 
     Route::middleware('company.permission:categories.manage')->group(function () {
         Route::get('categories', [CategoriesController::class, 'index'])->name('categories.index');
@@ -208,10 +224,12 @@ Route::group(['middleware' => ['auth:web', 'company.selected']], function () {
     Route::get('reports', [ReportsController::class, 'index'])->middleware('company.permission:reports.view')->name('reports.index');
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('company.permission:roles.manage')->name('activity-logs.index');
 
-    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('notifications/generate', [NotificationController::class, 'generate'])->name('notifications.generate');
-    Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
-    Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::middleware('company.permission:notifications.manage')->group(function () {
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/generate', [NotificationController::class, 'generate'])->name('notifications.generate');
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    });
 
     Route::middleware('company.permission:documents.manage')->group(function () {
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');

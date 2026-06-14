@@ -3,6 +3,7 @@
 @section('title', 'Rentals')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="px-3">
         <div class="page-header">
             <div>
@@ -53,6 +54,50 @@
         </div>
 
         <section class="panel">
+            <div class="list-toolbar">
+                <div>
+                    <h2 class="mb-1">Rental Register</h2>
+                    <p class="text-muted mb-0">Filter reservations, active rentals, returns, and closed jobs.</p>
+                </div>
+                <form method="GET" action="{{ route('rentals.index') }}">
+                    <div>
+                        <label for="search" class="form-label">Search</label>
+                        <input id="search" name="search" class="form-control" value="{{ $filters['search'] }}" placeholder="RTN, customer, location">
+                    </div>
+                    <div>
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="all" @selected($filters['status'] === 'all')>All statuses</option>
+                            @foreach($statuses as $value => $label)
+                                <option value="{{ $value }}" @selected($filters['status'] === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="rental_start_date" @selected($filters['sort'] === 'rental_start_date')>Start date</option>
+                            <option value="rental_end_date" @selected($filters['sort'] === 'rental_end_date')>End date</option>
+                            <option value="customer" @selected($filters['sort'] === 'customer')>Customer</option>
+                            <option value="status" @selected($filters['sort'] === 'status')>Status</option>
+                            <option value="amount" @selected($filters['sort'] === 'amount')>Amount</option>
+                            <option value="created_at" @selected($filters['sort'] === 'created_at')>Created date</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Newest / High first</option>
+                            <option value="asc" @selected($filters['direction'] === 'asc')>Oldest / Low first</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <x-lucide-search class="w-4 h-4"/>
+                        Apply
+                    </button>
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table class="table modern-table align-middle">
                     <thead>
@@ -68,7 +113,7 @@
                     </thead>
                     <tbody>
                     @forelse($rentals as $rental)
-                        @php($subtotal = (float) $rental->rentalItems->sum('total_price'))
+                        @php($subtotal = (float) $rental->rental_items_total_price)
                         <tr>
                             <td>
                                 <strong>RTN-{{ $rental->id }}</strong>
@@ -79,13 +124,13 @@
                             <td>{{ $rental->customer?->company_name ?: 'Unknown customer' }}</td>
                             <td>{{ $rental->rental_start_date?->format('Y-m-d') ?: '-' }} - {{ $rental->rental_end_date?->format('Y-m-d') ?: '-' }}</td>
                             <td>
-                                <strong>{{ $rental->rentalItems->count() }}</strong>
+                                <strong>{{ $rental->rental_items_count }}</strong>
                                 <span class="text-muted">items</span>
                             </td>
                             <td>
                                 <span class="badge badge-soft-secondary">{{ $statuses[$rental->status] ?? str($rental->status)->headline() }}</span>
                             </td>
-                            <td>{{ number_format($subtotal, 2) }}</td>
+                            <td>{{ $money->format($subtotal) }}</td>
                             <td>
                                 <div class="table-actions justify-content-end">
                                 <a href="{{ route('rentals.show', $rental) }}" class="btn btn-sm btn-outline-secondary">
@@ -109,6 +154,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$rentals"/>
         </section>
     </div>
 @endsection

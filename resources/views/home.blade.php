@@ -3,6 +3,10 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @php
+        $money = app(\App\Support\Money::class);
+    @endphp
+
     <div class="container-fluid erm-page">
         <div class="page-header">
             <div>
@@ -29,8 +33,8 @@
                         <x-lucide-receipt class="w-5 h-5"/>
                     </div>
                     <span>This Month Invoiced</span>
-                    <strong>{{ number_format($summary['monthRevenue'], 2) }}</strong>
-                    <small>{{ number_format($summary['monthCollected'], 2) }} collected</small>
+                    <strong>{{ $money->format($summary['monthRevenue'], $summary['currency']) }}</strong>
+                    <small>{{ $money->format($summary['monthCollected'], $summary['currency']) }} collected</small>
                 </section>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
@@ -39,7 +43,7 @@
                         <x-lucide-circle-dollar-sign class="w-5 h-5"/>
                     </div>
                     <span>Outstanding Balance</span>
-                    <strong>{{ number_format($summary['outstandingBalance'], 2) }}</strong>
+                    <strong>{{ $money->format($summary['outstandingBalance'], $summary['currency']) }}</strong>
                     <small>Open invoice balance</small>
                 </section>
             </div>
@@ -265,8 +269,8 @@
                                 <tr>
                                     <td><a href="{{ route('invoices.show', $invoice) }}">{{ $invoice->invoice_number }}</a></td>
                                     <td>{{ $invoice->customer?->company_name ?? 'Walk-in Customer' }}</td>
-                                    <td>{{ number_format((float) $invoice->total_amount, 2) }}</td>
-                                    <td>{{ number_format((float) $invoice->balance_due, 2) }}</td>
+                                    <td>{{ $money->format($invoice->total_amount, $invoice->currency) }}</td>
+                                    <td>{{ $money->format($invoice->balance_due, $invoice->currency) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No invoices yet.</td></tr>

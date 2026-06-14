@@ -50,8 +50,11 @@ class ReportsController extends Controller
             ->get();
         $operatingCost = (float) $expenses->sum('total_amount');
         $maintenanceCost = (float) $maintenance->sum('cost');
-        $invoiced = (float) $invoices->sum('total_amount');
-        $creditTotal = (float) $invoices->sum(fn (Invoice $invoice): float => (float) $invoice->creditNotes->where('status', '!=', 'voided')->sum('amount'));
+        $invoiced = (float) $invoices->sum('base_total_amount');
+        $creditTotal = (float) $invoices->sum(fn (Invoice $invoice): float => $this->baseAmount(
+            (float) $invoice->creditNotes->where('status', '!=', 'voided')->sum('amount'),
+            (float) $invoice->exchange_rate,
+        ));
         $profitability = $this->rentalProfitability($rentals, $maintenance);
         $netProfit = $invoiced - $creditTotal - $operatingCost - $maintenanceCost;
 
@@ -60,9 +63,9 @@ class ReportsController extends Controller
             'endDate' => $endDate,
             'summary' => [
                 'invoiced' => $invoiced,
-                'collected' => (float) $payments->sum('amount'),
-                'outstanding' => (float) Invoice::sum('balance_due'),
-                'damage' => (float) $invoices->sum('damage_amount'),
+                'collected' => (float) $payments->sum(fn (InvoicePayment $payment): float => $this->baseAmount((float) $payment->amount, (float) ($payment->invoice?->exchange_rate ?? 1))),
+                'outstanding' => (float) Invoice::sum('base_balance_due'),
+                'damage' => (float) $invoices->sum(fn (Invoice $invoice): float => $this->baseAmount((float) $invoice->damage_amount, (float) $invoice->exchange_rate)),
                 'credits' => $creditTotal,
                 'maintenanceCost' => $maintenanceCost,
                 'operatingCost' => $operatingCost,
@@ -103,7 +106,7 @@ class ReportsController extends Controller
             ->groupBy(fn (Invoice $invoice): string => $invoice->invoice_date?->format('Y-m') ?: 'Unknown')
             ->map(fn (Collection $group, string $month): array => [
                 'month' => $month,
-                'amount' => (float) $group->sum('total_amount'),
+                'amount' => (float) $group->sum('base_total_amount'),
             ])
             ->sortBy('month')
             ->values();
@@ -118,8 +121,8 @@ class ReportsController extends Controller
             ->groupBy(fn (Invoice $invoice): string => $invoice->customer?->company_name ?: 'Unknown customer')
             ->map(fn (Collection $group, string $customer): array => [
                 'customer' => $customer,
-                'invoiced' => (float) $group->sum('total_amount'),
-                'balance' => (float) $group->sum('balance_due'),
+                'invoiced' => (float) $group->sum('base_total_amount'),
+                'balance' => (float) $group->sum('base_balance_due'),
             ])
             ->sortByDesc('invoiced')
             ->take(10)
@@ -191,8 +194,8 @@ class ReportsController extends Controller
 
         return $rentals->map(function (Rental $rental) use ($maintenanceByProduct): array {
             $invoice = $rental->invoice;
-            $revenue = $invoice ? (float) $invoice->total_amount : (float) $rental->rentalItems->sum('total_price');
-            $credits = $invoice ? (float) $invoice->creditNotes->where('status', '!=', 'voided')->sum('amount') : 0.0;
+            $revenue = $invoice ? (float) $invoice->base_total_amount : (float) $rental->rentalItems->sum('total_price');
+            $credits = $invoice ? $this->baseAmount((float) $invoice->creditNotes->where('status', '!=', 'voided')->sum('amount'), (float) $invoice->exchange_rate) : 0.0;
             $expenses = (float) $rental->expenses->where('payment_status', '!=', 'voided')->sum('total_amount');
             $productIds = $rental->rentalItems->pluck('product_id')->filter()->unique();
             $maintenanceCost = (float) $productIds->sum(fn (int $productId): float => (float) ($maintenanceByProduct[$productId] ?? 0));
@@ -277,5 +280,10 @@ class ReportsController extends Controller
             ->sortByDesc('net')
             ->take(10)
             ->values();
+    }
+
+    private function baseAmount(float $amount, float $exchangeRate): float
+    {
+        return round($amount * ($exchangeRate ?: 1), 2);
     }
 }

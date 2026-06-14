@@ -3,6 +3,7 @@
 @section('title', 'Platform')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="container-fluid erm-page">
         <div class="page-header">
             <div>
@@ -43,7 +44,7 @@
                         <x-lucide-wallet-cards class="w-5 h-5"/>
                     </div>
                     <span>Monthly Run Rate</span>
-                    <strong>${{ number_format($monthlyRecurringRevenue, 2) }}</strong>
+                    <strong>{{ $money->format($monthlyRecurringRevenue, 'USD') }}</strong>
                     <small>Trialing and active plans</small>
                 </div>
             </div>
@@ -94,7 +95,7 @@
                                 {{ $company->products_count }} equipment,
                                 {{ $company->users_count }} users
                             </td>
-                            <td class="text-end">${{ number_format($company->subscription?->amount ?? 0, 2) }}</td>
+                            <td class="text-end">{{ $money->format($company->subscription?->amount ?? 0, $company->subscription?->currency ?? 'USD') }}</td>
                         </tr>
                     @empty
                         <tr>

@@ -10,6 +10,7 @@ use App\Models\ProductDocument;
 use App\Models\Quote;
 use App\Models\Rental;
 use App\Models\TenantNotification;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class NotificationGenerator
@@ -48,7 +49,7 @@ class NotificationGenerator
                     'type' => $isOverdue ? 'invoice_overdue' : 'invoice_due',
                     'severity' => $isOverdue ? 'danger' : 'warning',
                     'title' => $isOverdue ? "Invoice {$invoice->invoice_number} is overdue" : "Invoice {$invoice->invoice_number} is due soon",
-                    'body' => 'Outstanding balance: '.number_format((float) $invoice->balance_due, 2),
+                    'body' => 'Outstanding balance: '.app(Money::class)->format($invoice->balance_due, $invoice->currency),
                     'action_label' => 'View Invoice',
                     'action_url' => route('invoices.show', $invoice),
                     'due_at' => $invoice->due_date,

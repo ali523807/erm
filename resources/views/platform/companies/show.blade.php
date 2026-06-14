@@ -4,6 +4,7 @@
 
 @section('content')
     @php
+        $money = app(\App\Support\Money::class);
         $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class);
         $currentPlan = $company->subscription?->plan;
         $moduleMatrix = $moduleCatalog->matrixForPlan($currentPlan);
@@ -33,7 +34,7 @@
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="metric-card">
                     <span>Monthly Amount</span>
-                    <strong>${{ number_format($company->subscription?->amount ?? 0, 2) }}</strong>
+                    <strong>{{ $money->format($company->subscription?->amount ?? 0, $company->subscription?->currency ?? 'USD') }}</strong>
                     <small>{{ strtoupper($company->subscription?->currency ?? 'USD') }}</small>
                 </div>
             </div>
@@ -77,7 +78,7 @@
                                 <select id="subscription_plan_id" name="subscription_plan_id" class="form-select @error('subscription_plan_id') is-invalid @enderror">
                                     @foreach($plans as $plan)
                                         <option value="{{ $plan->id }}" @selected(old('subscription_plan_id', $company->subscription?->subscription_plan_id) == $plan->id)>
-                                            {{ $plan->name }} - ${{ number_format($plan->monthly_price, 2) }}/mo
+                                            {{ $plan->name }} - {{ $money->format($plan->monthly_price, 'USD') }}/mo
                                         </option>
                                     @endforeach
                                 </select>

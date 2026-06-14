@@ -75,7 +75,7 @@
                                     <td>{{ $item->start_date ?: '-' }} - {{ $item->end_date ?: '-' }}</td>
                                     <td>{{ number_format((float) $item->no_of_duration, 2) }} {{ $item->duration_type ?: $item->rate_type }}</td>
                                     <td><span class="badge badge-soft-secondary">{{ str($item->status ?: 'reserved')->headline() }}</span></td>
-                                    <td>{{ number_format((float) $item->total_price, 2) }}</td>
+                                    <td>{{ $money->format($item->total_price) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -118,11 +118,11 @@
                         </div>
                         <div>
                             <dt>Subtotal</dt>
-                            <dd>{{ number_format($totals['subtotal'], 2) }}</dd>
+                            <dd>{{ $money->format($totals['subtotal']) }}</dd>
                         </div>
                         <div>
                             <dt>Deposit</dt>
-                            <dd>{{ number_format($totals['deposit'], 2) }}</dd>
+                            <dd>{{ $money->format($totals['deposit']) }}</dd>
                         </div>
                     </dl>
 

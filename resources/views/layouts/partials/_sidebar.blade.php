@@ -21,10 +21,10 @@
         <div class="sidebar-logo">
             <a href="{{ route('home') }}" class="brand-lockup">
                 <span class="brand-mark">
-                    <x-lucide-building-2 class="w-5 h-5"/>
+                    <x-application-logo/>
                 </span>
                 <span>
-                    <strong>ERM Cloud</strong>
+                    <strong>RentalHook</strong>
                     <small>{{ auth()->user()->currentCompany?->name ?? 'Workspace' }}</small>
                 </span>
             </a>
@@ -43,13 +43,15 @@
                 </li>
             @endif
 
-            <li class="sidebar-item">
-                <a href="{{ route('notifications.index') }}" wire:navigate
-                   class="sidebar-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-                    <x-lucide-bell class="w-4 h-4"/>
-                    <span>Notifications</span>
-                </a>
-            </li>
+            @if($currentUser->hasCurrentCompanyPermission('notifications.manage'))
+                <li class="sidebar-item">
+                    <a href="{{ route('notifications.index') }}" wire:navigate
+                       class="sidebar-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+                        <x-lucide-bell class="w-4 h-4"/>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+            @endif
 
             @if($canUseRentalDesk)
                 <li class="sidebar-nav-heading">Rental Desk</li>

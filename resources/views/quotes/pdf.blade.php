@@ -26,7 +26,7 @@
     @php($money = app(\App\Support\Money::class))
     <div class="header grid">
         <div class="col">
-            <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
+            <div class="brand">{{ auth()->user()->currentCompany?->name ?? 'RentalHook' }}</div>
             <div class="muted">{{ auth()->user()->currentCompany?->email }}</div>
         </div>
         <div class="col right">

@@ -10,7 +10,8 @@
         $product->storageLocation?->name,
     ])->filter()->join(' / ') ?: ($product->location ?: 'Unassigned');
 
-    $formatMoney = fn ($value): string => number_format((float) $value, 2);
+    $money = app(\App\Support\Money::class);
+    $formatMoney = fn ($value): string => $money->format($value);
 @endphp
 
 @section('content')

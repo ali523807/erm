@@ -3,6 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="page-header">
         <div>
             <span class="eyebrow">Welcome</span>
@@ -16,7 +17,7 @@
             ['Quotes', $summary['quotes'], 'file-signature'],
             ['Rentals', $summary['rentals'], 'file-box'],
             ['Invoices', $summary['invoices'], 'file-text'],
-            ['Balance', number_format($summary['balance'], 2), 'credit-card'],
+            ['Balance', $money->format($summary['balance'], $portalUser->company?->currency), 'credit-card'],
         ] as [$label, $value, $icon])
             <div class="col-md-3">
                 <section class="panel h-100">

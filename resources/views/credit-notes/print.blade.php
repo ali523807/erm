@@ -25,7 +25,7 @@
     <div class="header">
         <div>
             <h1>Credit Note</h1>
-            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'ERM Cloud' }}</div>
+            <div class="muted">{{ auth()->user()->currentCompany?->name ?? 'RentalHook' }}</div>
         </div>
         <div class="right">
             <strong>{{ $creditNote->credit_note_number }}</strong><br>

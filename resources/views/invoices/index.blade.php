@@ -49,6 +49,51 @@
         </div>
 
         <section class="panel">
+            <div class="list-toolbar">
+                <div>
+                    <h2 class="mb-1">Invoice Register</h2>
+                    <p class="text-muted mb-0">Find invoices by customer, invoice number, rental, amount, or collection status.</p>
+                </div>
+                <form method="GET" action="{{ route('invoices.index') }}">
+                    <div>
+                        <label for="search" class="form-label">Search</label>
+                        <input id="search" name="search" class="form-control" value="{{ $filters['search'] }}" placeholder="Invoice, RTN, customer">
+                    </div>
+                    <div>
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="all" @selected($filters['status'] === 'all')>All statuses</option>
+                            <option value="issued" @selected($filters['status'] === 'issued')>Issued</option>
+                            <option value="partial" @selected($filters['status'] === 'partial')>Partial</option>
+                            <option value="paid" @selected($filters['status'] === 'paid')>Paid</option>
+                            <option value="overdue" @selected($filters['status'] === 'overdue')>Overdue</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort" class="form-label">Sort</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="invoice_date" @selected($filters['sort'] === 'invoice_date')>Invoice date</option>
+                            <option value="due_date" @selected($filters['sort'] === 'due_date')>Due date</option>
+                            <option value="customer" @selected($filters['sort'] === 'customer')>Customer</option>
+                            <option value="status" @selected($filters['sort'] === 'status')>Status</option>
+                            <option value="total_amount" @selected($filters['sort'] === 'total_amount')>Total</option>
+                            <option value="balance_due" @selected($filters['sort'] === 'balance_due')>Balance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="direction" class="form-label">Order</label>
+                        <select id="direction" name="direction" class="form-select">
+                            <option value="desc" @selected($filters['direction'] === 'desc')>Newest / High first</option>
+                            <option value="asc" @selected($filters['direction'] === 'asc')>Oldest / Low first</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <x-lucide-search class="w-4 h-4"/>
+                        Apply
+                    </button>
+                </form>
+            </div>
+
             <div class="table-responsive">
                 <table class="table modern-table align-middle">
                     <thead>
@@ -99,6 +144,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <x-pagination :paginator="$invoices"/>
         </section>
     </div>
 @endsection

@@ -59,13 +59,13 @@
             new DataTable('#products-table').destroy();
 
             const columns = [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'equipment_code', name: 'equipment_code'},
                 {data: 'name', name: 'name'},
-                {data: 'category.name', name: 'category'},
+                {data: 'category_name', name: 'category_name', orderable: false},
                 {data: 'asset_status', name: 'asset_status'},
                 @if($canManageLocations)
-                    {data: 'location_name', name: 'location_name'},
+                    {data: 'location_name', name: 'location_name', orderable: false},
                 @endif
                 {data: 'status', name: 'status'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -76,6 +76,7 @@
                 serverSide: true,
                 ajax: "{{ route('products.index') }}",
                 columns,
+                order: [[2, 'asc']],
                 buttons: [],
             });
 

@@ -21,17 +21,18 @@ class DepositController extends Controller
         $transactions = DepositTransaction::with(['rental.customer', 'invoice', 'creator'])
             ->latest('transaction_date')
             ->latest()
-            ->get();
+            ->paginate(25);
+        $collected = (float) DepositTransaction::where('type', 'collected')->sum('amount');
+        $refunded = (float) DepositTransaction::where('type', 'refunded')->sum('amount');
+        $applied = (float) DepositTransaction::where('type', 'applied')->sum('amount');
 
         return view('deposits.index', [
             'transactions' => $transactions,
             'summary' => [
-                'collected' => (float) $transactions->where('type', 'collected')->sum('amount'),
-                'refunded' => (float) $transactions->where('type', 'refunded')->sum('amount'),
-                'applied' => (float) $transactions->where('type', 'applied')->sum('amount'),
-                'held' => (float) $transactions->where('type', 'collected')->sum('amount')
-                    - (float) $transactions->where('type', 'refunded')->sum('amount')
-                    - (float) $transactions->where('type', 'applied')->sum('amount'),
+                'collected' => $collected,
+                'refunded' => $refunded,
+                'applied' => $applied,
+                'held' => $collected - $refunded - $applied,
             ],
         ]);
     }

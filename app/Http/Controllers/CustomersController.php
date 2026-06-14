@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Document;
+use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ class CustomersController extends Controller
     {
         $search = trim((string) $request->input('search'));
         $status = $request->input('status', 'all');
+        $sort = (string) $request->input('sort', 'company_name');
+        $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['company_name', 'contact_person', 'balance', 'rentals', 'created_at'];
+        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'company_name';
 
         $customers = Customer::withCount(['quotes', 'rentals', 'invoices'])
             ->withSum('invoices as balance_due_sum', 'balance_due')
@@ -28,24 +33,26 @@ class CustomersController extends Controller
             })
             ->when($status === 'active', fn ($query) => $query->has('rentals'))
             ->when($status === 'balance', fn ($query) => $query->whereHas('invoices', fn ($query) => $query->where('balance_due', '>', 0)))
-            ->latest()
-            ->get();
-
-        $allCustomers = Customer::withCount(['rentals', 'invoices'])
-            ->withSum('invoices as balance_due_sum', 'balance_due')
-            ->get();
+            ->when($sort === 'balance', fn ($query) => $query->orderBy('balance_due_sum', $direction))
+            ->when($sort === 'rentals', fn ($query) => $query->orderBy('rentals_count', $direction))
+            ->when(! in_array($sort, ['balance', 'rentals'], true), fn ($query) => $query->orderBy($sort, $direction))
+            ->orderBy('company_name')
+            ->paginate(25)
+            ->withQueryString();
 
         return view('customers.index', [
             'customers' => $customers,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
+                'sort' => $sort,
+                'direction' => $direction,
             ],
             'summary' => [
-                'total' => $allCustomers->count(),
-                'active' => $allCustomers->where('rentals_count', '>', 0)->count(),
-                'withBalance' => $allCustomers->filter(fn (Customer $customer): bool => (float) $customer->balance_due_sum > 0)->count(),
-                'balanceDue' => (float) $allCustomers->sum('balance_due_sum'),
+                'total' => Customer::count(),
+                'active' => Customer::has('rentals')->count(),
+                'withBalance' => Customer::whereHas('invoices', fn ($query) => $query->where('balance_due', '>', 0))->count(),
+                'balanceDue' => (float) Invoice::sum('balance_due'),
             ],
         ]);
     }

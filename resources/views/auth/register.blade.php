@@ -3,6 +3,7 @@
 @section('title', 'Register')
 
 @section('content')
+    @php($money = app(\App\Support\Money::class))
     <div class="auth-card-header">
         <span class="auth-icon">
             <x-lucide-building-2 class="w-5 h-5"/>
@@ -27,7 +28,7 @@
                     </div>
                 </div>
                 <div class="selected-plan-price">
-                    <strong>${{ number_format($selectedPlan->monthly_price, 0) }}</strong>
+                    <strong>{{ $money->format($selectedPlan->monthly_price, 'USD') }}</strong>
                     <span>/ month</span>
                 </div>
             </div>
