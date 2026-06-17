@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>RentalHook - The Complete Equipment Rental Platform</title>
+    @include('layouts.partials._favicons')
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
