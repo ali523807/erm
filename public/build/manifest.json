@@ -1,0 +1,70 @@
+{
+  "_jquery-4Gzz9IB8.js": {
+    "file": "assets/jquery-4Gzz9IB8.js",
+    "name": "jquery"
+  },
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff": {
+    "file": "assets/bootstrap-icons-BOrJxbIo.woff",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff"
+  },
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2": {
+    "file": "assets/bootstrap-icons-BtvjY1KL.woff2",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_444444_256x240.png": {
+    "file": "assets/ui-icons_444444_256x240-CpP69fnb.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_444444_256x240.png"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_555555_256x240.png": {
+    "file": "assets/ui-icons_555555_256x240-Gpf3s6pN.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_555555_256x240.png"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_777620_256x240.png": {
+    "file": "assets/ui-icons_777620_256x240-LqTLgcsJ.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_777620_256x240.png"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_777777_256x240.png": {
+    "file": "assets/ui-icons_777777_256x240-BXzCFypm.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_777777_256x240.png"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_cc0000_256x240.png": {
+    "file": "assets/ui-icons_cc0000_256x240-Cofb9Too.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_cc0000_256x240.png"
+  },
+  "node_modules/jquery-ui/dist/themes/base/images/ui-icons_ffffff_256x240.png": {
+    "file": "assets/ui-icons_ffffff_256x240-CkMfqFve.png",
+    "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_ffffff_256x240.png"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DQqWCsfx.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-4Gzz9IB8.js"
+    ],
+    "css": [
+      "assets/app-ChQQD_iu.css"
+    ]
+  },
+  "resources/js/jquery.js": {
+    "file": "assets/jquery-BUVfLpgX.js",
+    "name": "jquery",
+    "src": "resources/js/jquery.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-4Gzz9IB8.js"
+    ]
+  },
+  "resources/js/jqueryui.js": {
+    "file": "assets/jqueryui-DE3ndH5v.js",
+    "name": "jqueryui",
+    "src": "resources/js/jqueryui.js",
+    "isEntry": true
+  },
+  "resources/sass/app.scss": {
+    "file": "assets/app-DPN8YADP.css",
+    "src": "resources/sass/app.scss",
+    "isEntry": true
+  }
+}
