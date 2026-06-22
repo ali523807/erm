@@ -22,7 +22,12 @@
         </span>
     </a>
 
-    <nav>
+    <button class="landing-nav-toggle" type="button" aria-expanded="false" aria-controls="landing-menu" aria-label="Toggle navigation">
+        <x-lucide-menu class="landing-nav-icon landing-nav-icon-menu"/>
+        <x-lucide-x class="landing-nav-icon landing-nav-icon-close"/>
+    </button>
+
+    <nav id="landing-menu" class="landing-menu">
         <a href="#software">Software</a>
         <a href="#modules">Modules</a>
         <a href="#pricing">Pricing</a>

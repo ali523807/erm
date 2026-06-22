@@ -36,7 +36,7 @@
     "src": "node_modules/jquery-ui/dist/themes/base/images/ui-icons_ffffff_256x240.png"
   },
   "resources/js/app.js": {
-    "file": "assets/app-DQqWCsfx.js",
+    "file": "assets/app-C1X3Atvv.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -63,7 +63,7 @@
     "isEntry": true
   },
   "resources/sass/app.scss": {
-    "file": "assets/app-DPN8YADP.css",
+    "file": "assets/app-Bmf2335D.css",
     "src": "resources/sass/app.scss",
     "isEntry": true
   }
