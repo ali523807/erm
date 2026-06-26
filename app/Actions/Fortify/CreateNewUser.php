@@ -8,6 +8,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -84,12 +85,27 @@ class CreateNewUser implements CreatesNewUsers
         });
 
         try {
-            Mail::to(config('mail.admin.address'))->send(new NewCompanyRegistrationMail(
+            $adminAddress = config('mail.admin.address');
+
+            Mail::to($adminAddress)->send(new NewCompanyRegistrationMail(
                 $registration['user'],
                 $registration['company'],
                 $registration['selectedPlan'],
             ));
+
+            Log::info('New company registration admin email sent.', [
+                'company_id' => $registration['company']->id,
+                'company_name' => $registration['company']->name,
+                'to' => $adminAddress,
+            ]);
         } catch (Throwable $exception) {
+            Log::error('New company registration admin email failed.', [
+                'company_id' => $registration['company']->id,
+                'company_name' => $registration['company']->name,
+                'to' => config('mail.admin.address'),
+                'message' => $exception->getMessage(),
+            ]);
+
             report($exception);
         }
 
