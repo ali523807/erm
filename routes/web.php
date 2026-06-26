@@ -46,6 +46,8 @@ use Illuminate\Support\Facades\Route;
 include '_utilities.php';
 
 Route::get('robots.txt', function () {
+    $appUrl = rtrim(config('app.url'), '/');
+
     $lines = [
         'User-agent: *',
         'Allow: /',
@@ -55,27 +57,29 @@ Route::get('robots.txt', function () {
         'Disallow: /pay/',
         'Disallow: /settings/',
         'Disallow: /reports',
-        'Sitemap: '.url('/sitemap.xml'),
+        'Sitemap: '.$appUrl.'/sitemap.xml',
     ];
 
     return response(implode("\n", $lines)."\n", 200, ['Content-Type' => 'text/plain']);
 })->name('robots');
 
 Route::get('sitemap.xml', function () {
+    $appUrl = rtrim(config('app.url'), '/');
+
     $urls = [
         [
-            'loc' => route('landing'),
+            'loc' => $appUrl,
             'priority' => '1.0',
             'changefreq' => 'weekly',
             'images' => [
                 [
-                    'loc' => asset('images/landing-equipment-yard.jpg'),
+                    'loc' => $appUrl.'/images/landing-equipment-yard.jpg',
                     'title' => 'Equipment rental software for Middle East rental companies',
                 ],
             ],
         ],
         [
-            'loc' => route('register'),
+            'loc' => $appUrl.'/register',
             'priority' => '0.8',
             'changefreq' => 'monthly',
             'images' => [],

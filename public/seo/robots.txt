@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /platform/
+Disallow: /home
+Disallow: /portal/
+Disallow: /pay/
+Disallow: /settings/
+Disallow: /reports
+Sitemap: https://rentalhook.com/sitemap.xml

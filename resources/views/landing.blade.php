@@ -5,33 +5,34 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     @php
-        $canonicalUrl = route('landing');
+        $appUrl = rtrim(config('app.url'), '/');
+        $canonicalUrl = $appUrl;
         $seoTitle = 'Equipment Rental Software Middle East | RentalHook';
         $seoDescription = 'RentalHook is equipment rental software for Middle East rental companies in the UAE, Saudi Arabia, Qatar, Oman, Bahrain, and Kuwait. Manage fleet, quotes, rentals, dispatch, invoices, payments, maintenance, and customer portals.';
         $seoKeywords = 'equipment rental software Middle East, equipment rental management software UAE, rental software Saudi Arabia, construction equipment rental software Dubai, heavy equipment rental software GCC, rental fleet management Qatar, equipment hire software Kuwait, tool rental software Oman, rental billing software Bahrain';
-        $seoImage = asset('images/landing-equipment-yard.jpg');
+        $seoImage = $appUrl.'/images/landing-equipment-yard.jpg';
         $structuredData = [
             '@context' => 'https://schema.org',
             '@graph' => [
                 [
                     '@type' => 'Organization',
-                    '@id' => url('/').'#organization',
+                    '@id' => $appUrl.'#organization',
                     'name' => 'RentalHook',
-                    'url' => url('/'),
-                    'logo' => asset('images/rentalhook-logo.svg'),
+                    'url' => $appUrl,
+                    'logo' => $appUrl.'/images/rentalhook-logo.svg',
                     'areaServed' => ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Bahrain', 'Kuwait', 'Middle East'],
                 ],
                 [
                     '@type' => 'WebSite',
-                    '@id' => url('/').'#website',
-                    'url' => url('/'),
+                    '@id' => $appUrl.'#website',
+                    'url' => $appUrl,
                     'name' => 'RentalHook',
-                    'publisher' => ['@id' => url('/').'#organization'],
+                    'publisher' => ['@id' => $appUrl.'#organization'],
                     'inLanguage' => 'en',
                 ],
                 [
                     '@type' => 'SoftwareApplication',
-                    '@id' => url('/').'#software',
+                    '@id' => $appUrl.'#software',
                     'name' => 'RentalHook',
                     'applicationCategory' => 'BusinessApplication',
                     'operatingSystem' => 'Web',
@@ -43,9 +44,9 @@
                         '@type' => 'Offer',
                         'category' => 'SaaS subscription',
                         'availability' => 'https://schema.org/InStock',
-                        'url' => route('register'),
+                        'url' => $appUrl.'/register',
                     ],
-                    'publisher' => ['@id' => url('/').'#organization'],
+                    'publisher' => ['@id' => $appUrl.'#organization'],
                 ],
             ],
         ];

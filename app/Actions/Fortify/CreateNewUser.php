@@ -2,15 +2,18 @@
 
 namespace App\Actions\Fortify;
 
+use App\Mail\NewCompanyRegistrationMail;
 use App\Models\Company;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Throwable;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -37,7 +40,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return DB::transaction(function () use ($input): User {
+        $registration = DB::transaction(function () use ($input): array {
             $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
@@ -73,8 +76,24 @@ class CreateNewUser implements CreatesNewUsers
 
             $user->forceFill(['current_company_id' => $company->id])->save();
 
-            return $user;
+            return [
+                'company' => $company,
+                'selectedPlan' => $selectedPlan,
+                'user' => $user,
+            ];
         });
+
+        try {
+            Mail::to(config('mail.admin.address'))->send(new NewCompanyRegistrationMail(
+                $registration['user'],
+                $registration['company'],
+                $registration['selectedPlan'],
+            ));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return $registration['user'];
     }
 
     private function uniqueCompanySlug(string $name): string
