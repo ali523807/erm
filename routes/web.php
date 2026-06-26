@@ -45,6 +45,51 @@ use Illuminate\Support\Facades\Route;
 
 include '_utilities.php';
 
+Route::get('robots.txt', function () {
+    $lines = [
+        'User-agent: *',
+        'Allow: /',
+        'Disallow: /platform/',
+        'Disallow: /home',
+        'Disallow: /portal/',
+        'Disallow: /pay/',
+        'Disallow: /settings/',
+        'Disallow: /reports',
+        'Sitemap: '.url('/sitemap.xml'),
+    ];
+
+    return response(implode("\n", $lines)."\n", 200, ['Content-Type' => 'text/plain']);
+})->name('robots');
+
+Route::get('sitemap.xml', function () {
+    $urls = [
+        [
+            'loc' => route('landing'),
+            'priority' => '1.0',
+            'changefreq' => 'weekly',
+            'images' => [
+                [
+                    'loc' => asset('images/landing-equipment-yard.jpg'),
+                    'title' => 'Equipment rental software for Middle East rental companies',
+                ],
+            ],
+        ],
+        [
+            'loc' => route('register'),
+            'priority' => '0.8',
+            'changefreq' => 'monthly',
+            'images' => [],
+        ],
+    ];
+
+    $xml = view('sitemap', [
+        'urls' => $urls,
+        'lastModified' => now()->toAtomString(),
+    ])->render();
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
+
 Route::get('/', function () {
     return view('landing', [
         'plans' => SubscriptionPlan::where('is_active', true)

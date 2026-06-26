@@ -4,7 +4,78 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>RentalHook - The Complete Equipment Rental Platform</title>
+    @php
+        $canonicalUrl = route('landing');
+        $seoTitle = 'Equipment Rental Software Middle East | RentalHook';
+        $seoDescription = 'RentalHook is equipment rental software for Middle East rental companies in the UAE, Saudi Arabia, Qatar, Oman, Bahrain, and Kuwait. Manage fleet, quotes, rentals, dispatch, invoices, payments, maintenance, and customer portals.';
+        $seoKeywords = 'equipment rental software Middle East, equipment rental management software UAE, rental software Saudi Arabia, construction equipment rental software Dubai, heavy equipment rental software GCC, rental fleet management Qatar, equipment hire software Kuwait, tool rental software Oman, rental billing software Bahrain';
+        $seoImage = asset('images/landing-equipment-yard.jpg');
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/').'#organization',
+                    'name' => 'RentalHook',
+                    'url' => url('/'),
+                    'logo' => asset('images/rentalhook-logo.svg'),
+                    'areaServed' => ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Bahrain', 'Kuwait', 'Middle East'],
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => url('/').'#website',
+                    'url' => url('/'),
+                    'name' => 'RentalHook',
+                    'publisher' => ['@id' => url('/').'#organization'],
+                    'inLanguage' => 'en',
+                ],
+                [
+                    '@type' => 'SoftwareApplication',
+                    '@id' => url('/').'#software',
+                    'name' => 'RentalHook',
+                    'applicationCategory' => 'BusinessApplication',
+                    'operatingSystem' => 'Web',
+                    'description' => $seoDescription,
+                    'url' => $canonicalUrl,
+                    'image' => $seoImage,
+                    'areaServed' => ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Bahrain', 'Kuwait', 'Middle East'],
+                    'offers' => [
+                        '@type' => 'Offer',
+                        'category' => 'SaaS subscription',
+                        'availability' => 'https://schema.org/InStock',
+                        'url' => route('register'),
+                    ],
+                    'publisher' => ['@id' => url('/').'#organization'],
+                ],
+            ],
+        ];
+    @endphp
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="keywords" content="{{ $seoKeywords }}">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-AE" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-SA" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-QA" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-KW" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-OM" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="en-BH" href="{{ $canonicalUrl }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $seoImage }}">
+    <meta property="og:site_name" content="RentalHook">
+    <meta property="og:locale" content="en_AE">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
+    <script type="application/ld+json">
+        {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+    </script>
     @include('layouts.partials._favicons')
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -29,6 +100,7 @@
 
     <nav id="landing-menu" class="landing-menu">
         <a href="#software">Software</a>
+        <a href="#middle-east">Middle East</a>
         <a href="#modules">Modules</a>
         <a href="#pricing">Pricing</a>
         <a href="{{ route('login') }}">Login</a>
@@ -41,9 +113,9 @@
         <img src="{{ asset('images/landing-equipment-yard.jpg') }}" alt="Equipment rental yard with machinery ready for dispatch">
         <div class="landing-hero-overlay"></div>
         <div class="landing-hero-content">
-            <span class="eyebrow">The Complete Equipment Rental Platform</span>
+            <span class="eyebrow">Equipment Rental Software For The Middle East</span>
             <h1>RentalHook</h1>
-            <p>Run your rental company with customers, equipment, quotes, rentals, agreements, invoices, payments, deposits, maintenance, documents, and reports in one modern cloud workspace.</p>
+            <p>Run equipment rental operations across the UAE, Saudi Arabia, Qatar, Oman, Bahrain, Kuwait, and the wider GCC with customers, fleet, quotes, rentals, dispatch, invoices, payments, maintenance, documents, and reports in one modern cloud workspace.</p>
             <div class="landing-actions">
                 <a href="{{ route('register') }}" class="btn btn-light btn-lg">
                     <x-lucide-rocket class="w-4 h-4"/>
@@ -60,8 +132,8 @@
                     <span>Your team, fleet, customers, and finance in one place</span>
                 </div>
                 <div>
-                    <strong>Global ready</strong>
-                    <span>Currency, tax, locations, roles, and documents</span>
+                    <strong>GCC ready</strong>
+                    <span>Multi-currency, tax, locations, roles, and documents</span>
                 </div>
                 <div>
                     <strong>Full lifecycle</strong>
@@ -74,8 +146,8 @@
     <section class="landing-software-band" id="software">
         <div class="landing-section-heading">
             <span class="eyebrow">Software Glimpse</span>
-            <h2>Built around the real flow of a rental business.</h2>
-            <p>RentalHook gives equipment rental companies a complete workspace for daily operations, asset control, customer service, and finance.</p>
+            <h2>Built around the real flow of a Middle East rental business.</h2>
+            <p>RentalHook gives equipment rental companies a complete workspace for daily operations, asset control, customer service, and finance across construction, industrial, event, tool, and heavy equipment rental teams.</p>
         </div>
 
         <div class="software-preview-grid">
@@ -149,6 +221,32 @@
         </div>
     </section>
 
+    <section class="landing-band" id="middle-east">
+        <div class="landing-section-heading">
+            <span class="eyebrow">Middle East And GCC Coverage</span>
+            <h2>Rental software for growing equipment companies in the region.</h2>
+            <p>Designed for rental companies operating in Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat, Manama, Kuwait City, and multi-branch GCC markets where availability, billing, tax, fleet status, and customer communication must stay accurate.</p>
+        </div>
+
+        <div class="module-grid">
+            <article>
+                <x-lucide-map-pin class="w-5 h-5"/>
+                <strong>Regional operations</strong>
+                <p>Manage branches, warehouses, storage locations, teams, customers, and assets across multiple Middle East cities from one cloud workspace.</p>
+            </article>
+            <article>
+                <x-lucide-receipt class="w-5 h-5"/>
+                <strong>Tax and currency ready</strong>
+                <p>Support AED, SAR, QAR, OMR, BHD, KWD, USD, exchange rates, tax profiles, invoices, receipts, credit notes, and payment tracking.</p>
+            </article>
+            <article>
+                <x-lucide-hard-hat class="w-5 h-5"/>
+                <strong>Built for asset-heavy rentals</strong>
+                <p>Track heavy equipment, generators, access platforms, vehicles, tools, event gear, and custom asset categories with flexible fields and rate cards.</p>
+            </article>
+        </div>
+    </section>
+
     <section class="landing-band landing-primary-band">
         <div class="landing-section-heading">
             <span class="eyebrow">Built For Rental Companies</span>
@@ -175,9 +273,9 @@
 
     <section class="landing-band" id="modules">
         <div class="landing-section-heading">
-            <span class="eyebrow">Modules Covered</span>
+            <span class="eyebrow">Equipment Rental Management Modules</span>
             <h2>A complete suite for asset-based rental operations.</h2>
-            <p>The product is no longer just rentals and invoices. It now covers the operational, financial, customer, and asset-control layers needed by a growing rental company.</p>
+            <p>RentalHook covers the operational, financial, customer, and asset-control layers needed by equipment rental companies in competitive Middle East markets.</p>
         </div>
 
         <div class="module-grid">
