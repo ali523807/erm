@@ -1,7 +1,4 @@
-<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="favicon-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="favicon-title">
     <title id="favicon-title">RentalHook</title>
-    <rect width="64" height="64" rx="14" fill="#111827"/>
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 47V15h18.4c7.1 0 11.8 4.2 11.8 10.4 0 4.8-2.8 8.6-7.4 10l10 11.6h-9.7l-8.8-10.4h-5.7V47H16Zm8.6-17.6h8.7c2.8 0 4.5-1.5 4.5-3.8s-1.7-3.8-4.5-3.8h-8.7v7.6Z" fill="#FFFFFF"/>
-    <path d="M48.2 25.9c4.4 1.2 7.6 5.1 7.6 9.8 0 5.6-4.5 10.1-10.1 10.1h-3.1" stroke="#8FE6C1" stroke-width="5" stroke-linecap="round"/>
-    <path d="M46.9 45.8l-4.5 4.3 4.5 4.2" stroke="#8FE6C1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7EAAAOxAGVKw4bAAACxElEQVRYw+1WS0hUURj+/nPP6BjljOGiTEaNFm2SqKjB1FxkBGW4KYJCklCSFmIZIrhrEaVRBEYYQbToZQZBi0AJ02kM6bGLQcJsrIgKm3HRjM49528xD8cHk49Lm+bbXDjnO+d893985wBppPG/g1JN2vN35ULaDgGQcTKDQbFlDIBAJrP2qeCPV5HAiLZUQNbGPfdA4ug88pxVDACa/azNs+Exz6OlCBB/mXfGz6MUcgkACXKRYevOKio7sxQBcjEkjn4moNkbHeCko9kJEm4iSCKAhWy3F5QMhD95X1smIHaoNzTaX7VgrbhKNsOW0UtE+QAEGbYmAMesSMFM+FMg7Pf6oFQrAFCUXG5VDSSnIDVHKx9zIju51ghgjrXaItrJkOVJHfI9u2a//GcRsBeWVkMY55OG+lBccCq7o77auiIEkLlh51rKsPcQkT0pNHkg4Yq5FMAw2Zy+DKJSSOOBo72uLHju5vCKIhDH1JfhCQKeEBluCOEGCTdIuGa5kzYbw/6h9yBoEGWwlJ0rTkEy1K9v15jV8zmOqKHVW6hIVejj4PV4ZqD1Bxhih+PCyWILBEQrYTowojkyXQtwIFEcrPtCoy+2h8Y8TxP03+G3iJgtxABscpsFAmZ+Nzw+5IcyTyeGhdiXVVR2Ipk92XbbS0QiZiR2yyIQR2jMcxesH87sJK/YC0tcs0iGOAAwWGvf8gRQ6otTR0INYP4qtuRAHsx3ykrXLcfhSgEAjo76IzBEDTR/xs+AZ5ltmNqCpsaHJ9a01HSKvNWt0Po+DOM4dE6PY/cmJ4SoABgwVePkxW7Tsi6Yt8G6VevBPBBsulEHrQcgRDWEqADzJCKqNtjc9Xj5RsR6ECB31JXVywU5pupBpq3XcbXhDYTYCqUuQet3CIWfBdvuBFb0IlosHO11bkhjL5T2BJu7+tMv3TTSWAr+AIj7/qhv9Pb4AAAAAElFTkSuQmCC" width="32" height="32"/>
 </svg>

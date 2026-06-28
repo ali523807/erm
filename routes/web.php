@@ -84,6 +84,12 @@ Route::get('sitemap.xml', function () {
             'changefreq' => 'monthly',
             'images' => [],
         ],
+        [
+            'loc' => $appUrl.'/contact',
+            'priority' => '0.7',
+            'changefreq' => 'monthly',
+            'images' => [],
+        ],
     ];
 
     $xml = view('sitemap', [
@@ -101,6 +107,8 @@ Route::get('/', function () {
             ->get(),
     ]);
 })->name('landing');
+
+Route::view('contact', 'contact')->name('contact');
 
 Route::get('platform/login', [PlatformLoginController::class, 'create'])->name('platform.login');
 Route::post('platform/login', [PlatformLoginController::class, 'store'])->name('platform.login.store');

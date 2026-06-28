@@ -20,6 +20,16 @@
                     'name' => 'RentalHook',
                     'url' => $appUrl,
                     'logo' => $appUrl.'/images/rentalhook-logo.svg',
+                    'email' => 'info@rentalhook.com',
+                    'contactPoint' => [
+                        [
+                            '@type' => 'ContactPoint',
+                            'email' => 'support@rentalhook.com',
+                            'contactType' => 'customer support',
+                            'areaServed' => ['Middle East', 'Global'],
+                            'availableLanguage' => ['English'],
+                        ],
+                    ],
                     'areaServed' => ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Bahrain', 'Kuwait', 'Middle East'],
                 ],
                 [
@@ -83,31 +93,7 @@
 </head>
 <body class="landing-page">
 @php($money = app(\App\Support\Money::class))
-<header class="landing-nav">
-    <a href="{{ route('landing') }}" class="brand-lockup">
-        <span class="brand-mark">
-            <x-application-logo/>
-        </span>
-        <span>
-            <strong>RentalHook</strong>
-            <small>The Complete Equipment Rental Platform</small>
-        </span>
-    </a>
-
-    <button class="landing-nav-toggle" type="button" aria-expanded="false" aria-controls="landing-menu" aria-label="Toggle navigation">
-        <x-lucide-menu class="landing-nav-icon landing-nav-icon-menu"/>
-        <x-lucide-x class="landing-nav-icon landing-nav-icon-close"/>
-    </button>
-
-    <nav id="landing-menu" class="landing-menu">
-        <a href="#software">Software</a>
-        <a href="#middle-east">Middle East</a>
-        <a href="#modules">Modules</a>
-        <a href="#pricing">Pricing</a>
-        <a href="{{ route('login') }}">Login</a>
-        <a href="{{ route('register') }}" class="btn btn-dark">Start Free Trial</a>
-    </nav>
-</header>
+@include('layouts.partials._public-nav')
 
 <main>
     <section class="landing-hero">
@@ -219,6 +205,197 @@
                 <h3>Finance and documents</h3>
                 <p>Create PDFs for quotes, invoices, receipts, credit notes, statements, and agreements with payment links and delivery logs.</p>
             </article>
+        </div>
+    </section>
+
+    <section class="landing-band infographic-band" id="infographics">
+        <div class="landing-section-heading">
+            <span class="eyebrow">RentalHook In One View</span>
+            <h2>See the complete rental workflow in one clear view.</h2>
+            <p>RentalHook connects owners, rental teams, finance staff, and customers from first enquiry to final payment.</p>
+        </div>
+
+        <div class="infographic-grid">
+            <article class="infographic-card infographic-flow">
+                <div class="infographic-card-header">
+                    <span>
+                        <x-lucide-route/>
+                    </span>
+                    <div>
+                        <strong>Quote-to-cash lifecycle</strong>
+                        <small>Operational flow</small>
+                    </div>
+                </div>
+                <div class="flow-steps" aria-label="Quote to cash lifecycle">
+                    <div>
+                        <x-lucide-message-square-text/>
+                        <strong>Enquiry</strong>
+                        <span>Customer need captured</span>
+                    </div>
+                    <div>
+                        <x-lucide-file-pen-line/>
+                        <strong>Quote</strong>
+                        <span>Rates, tax, terms</span>
+                    </div>
+                    <div>
+                        <x-lucide-calendar-check/>
+                        <strong>Reserve</strong>
+                        <span>Availability locked</span>
+                    </div>
+                    <div>
+                        <x-lucide-truck/>
+                        <strong>Dispatch</strong>
+                        <span>Asset moves out</span>
+                    </div>
+                    <div>
+                        <x-lucide-rotate-ccw/>
+                        <strong>Return</strong>
+                        <span>Inspection and close</span>
+                    </div>
+                    <div>
+                        <x-lucide-receipt-text/>
+                        <strong>Invoice</strong>
+                        <span>Collect payment</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="infographic-card">
+                <div class="infographic-card-header">
+                    <span>
+                        <x-lucide-gauge/>
+                    </span>
+                    <div>
+                        <strong>Owner dashboard signals</strong>
+                        <small>Management view</small>
+                    </div>
+                </div>
+                <div class="signal-stack">
+                    <div>
+                        <span>Fleet utilization</span>
+                        <strong>74%</strong>
+                        <i style="width: 74%"></i>
+                    </div>
+                    <div>
+                        <span>Invoices collected</span>
+                        <strong>82%</strong>
+                        <i style="width: 82%"></i>
+                    </div>
+                    <div>
+                        <span>Returns due today</span>
+                        <strong>06</strong>
+                        <i style="width: 38%"></i>
+                    </div>
+                </div>
+            </article>
+
+            <article class="infographic-card">
+                <div class="infographic-card-header">
+                    <span>
+                        <x-lucide-globe-2/>
+                    </span>
+                    <div>
+                        <strong>Global rental ready</strong>
+                        <small>Regional controls</small>
+                    </div>
+                </div>
+                <div class="region-map">
+                    <span>UAE</span>
+                    <span>KSA</span>
+                    <span>Qatar</span>
+                    <span>Oman</span>
+                    <span>Kuwait</span>
+                    <span>Bahrain</span>
+                    <span>Global</span>
+                </div>
+                <p>Multi-currency, tax profiles, branches, warehouses, team permissions, and customer portal access for regional expansion.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="landing-band pricing-band" id="pricing">
+        <div class="landing-section-heading pricing-heading">
+            <div>
+                <span class="eyebrow">Subscription Plans</span>
+                <h2>Pick the right plan for each rental company.</h2>
+                <p>Start with the modules your rental company needs today and upgrade as your operations grow.</p>
+            </div>
+            <a href="{{ route('register') }}" class="btn btn-outline-secondary">
+                <x-lucide-building-2 class="w-4 h-4"/>
+                Register Company
+            </a>
+        </div>
+
+        <div class="pricing-grid">
+            <?php $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class); ?>
+            <?php if ($plans->isNotEmpty()) { ?>
+                <?php foreach ($plans as $plan) { ?>
+                    <?php
+                        $isFeatured = $plan->slug === 'business';
+                        $audience = match ($plan->slug) {
+                            'starter' => 'Small teams starting with core rentals',
+                            'business' => 'Growing rental companies with finance and operations',
+                            'enterprise' => 'Multi-branch teams needing scale and control',
+                            default => 'Rental teams ready for a cloud workspace',
+                        };
+                        $extraFeatures = match ($plan->slug) {
+                            'starter' => ['Customer and equipment records', 'Core rental workflow', 'Basic billing visibility'],
+                            'business' => ['Quotes, rentals, invoices, payments', 'Maintenance, deposits, reports', 'Customer portal and documents'],
+                            'enterprise' => ['Unlimited operating scale', 'Advanced controls and analytics', 'Priority rollout support'],
+                            default => ['Company workspace', 'Rental operations', 'Subscription billing'],
+                        };
+                        $includedModules = $moduleCatalog->featureLabelsForPlan($plan);
+                        $featureList = array_values(array_unique(array_merge($extraFeatures, $plan->features ?? [])));
+                    ?>
+                    <article class="pricing-card <?php echo e($isFeatured ? 'is-featured' : ''); ?>">
+                        <?php if ($isFeatured) { ?>
+                            <span class="plan-badge">Recommended</span>
+                        <?php } ?>
+                        <span class="plan-audience"><?php echo e($audience); ?></span>
+                        <h3><?php echo e($plan->name); ?></h3>
+                        <p><?php echo e($plan->description); ?></p>
+                        <div class="plan-price">
+                            <strong><?php echo e($money->format($plan->monthly_price, 'USD')); ?></strong>
+                            <span>/ month</span>
+                        </div>
+                        <?php if ($plan->yearly_price) { ?>
+                            <div class="plan-yearly"><?php echo e($money->format($plan->yearly_price, 'USD')); ?> billed yearly</div>
+                        <?php } ?>
+                        <div class="plan-module-list">
+                            <span>Included modules</span>
+                            <div>
+                                <?php foreach ($includedModules as $module) { ?>
+                                    <small><?php echo e($module); ?></small>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <ul>
+                            <?php foreach ($featureList as $feature) { ?>
+                                <li>
+                                    <span aria-hidden="true">&check;</span>
+                                    <?php echo e($feature); ?>
+                                </li>
+                            <?php } ?>
+                            <li>
+                                <span aria-hidden="true">&check;</span>
+                                <?php echo e($plan->user_limit ? number_format($plan->user_limit).' users included' : 'Unlimited users'); ?>
+                            </li>
+                            <li>
+                                <span aria-hidden="true">&check;</span>
+                                <?php echo e($plan->equipment_limit ? number_format($plan->equipment_limit).' equipment records' : 'Unlimited equipment records'); ?>
+                            </li>
+                        </ul>
+                        <a href="<?php echo e(route('register', ['plan' => $plan->slug])); ?>" class="btn <?php echo e($isFeatured ? 'btn-dark' : 'btn-outline-secondary'); ?> w-100">
+                            Start <?php echo e($plan->name); ?>
+                        </a>
+                    </article>
+                <?php } ?>
+            <?php } else { ?>
+                <div class="panel">
+                    <h3>No plans configured yet.</h3>
+                    <p class="mb-0 text-muted">Subscription plans will appear here once pricing is configured.</p>
+                </div>
+            <?php } ?>
         </div>
     </section>
 
@@ -362,99 +539,8 @@
         </div>
     </section>
 
-    <section class="landing-band pricing-band" id="pricing">
-        <div class="landing-section-heading pricing-heading">
-            <div>
-                <span class="eyebrow">Subscription Plans</span>
-                <h2>Pick the right plan for each rental company.</h2>
-                <p>Start with the modules your rental company needs today and upgrade as your operations grow.</p>
-            </div>
-            <a href="{{ route('register') }}" class="btn btn-outline-secondary">
-                <x-lucide-building-2 class="w-4 h-4"/>
-                Register Company
-            </a>
-        </div>
-
-        <div class="pricing-grid">
-            <?php $moduleCatalog = app(\App\Support\SubscriptionModuleCatalog::class); ?>
-            <?php if ($plans->isNotEmpty()) { ?>
-                <?php foreach ($plans as $plan) { ?>
-                    <?php
-                        $isFeatured = $plan->slug === 'business';
-                        $audience = match ($plan->slug) {
-                            'starter' => 'Small teams starting with core rentals',
-                            'business' => 'Growing rental companies with finance and operations',
-                            'enterprise' => 'Multi-branch teams needing scale and control',
-                            default => 'Rental teams ready for a cloud workspace',
-                        };
-                        $extraFeatures = match ($plan->slug) {
-                            'starter' => ['Customer and equipment records', 'Core rental workflow', 'Basic billing visibility'],
-                            'business' => ['Quotes, rentals, invoices, payments', 'Maintenance, deposits, reports', 'Customer portal and documents'],
-                            'enterprise' => ['Unlimited operating scale', 'Advanced controls and analytics', 'Priority rollout support'],
-                            default => ['Company workspace', 'Rental operations', 'Subscription billing'],
-                        };
-                        $includedModules = $moduleCatalog->featureLabelsForPlan($plan);
-                        $featureList = array_values(array_unique(array_merge($extraFeatures, $plan->features ?? [])));
-                    ?>
-                    <article class="pricing-card <?php echo e($isFeatured ? 'is-featured' : ''); ?>">
-                        <?php if ($isFeatured) { ?>
-                            <span class="plan-badge">Recommended</span>
-                        <?php } ?>
-                        <span class="plan-audience"><?php echo e($audience); ?></span>
-                        <h3><?php echo e($plan->name); ?></h3>
-                        <p><?php echo e($plan->description); ?></p>
-                        <div class="plan-price">
-                            <strong><?php echo e($money->format($plan->monthly_price, 'USD')); ?></strong>
-                            <span>/ month</span>
-                        </div>
-                        <?php if ($plan->yearly_price) { ?>
-                            <div class="plan-yearly"><?php echo e($money->format($plan->yearly_price, 'USD')); ?> billed yearly</div>
-                        <?php } ?>
-                        <div class="plan-module-list">
-                            <span>Included modules</span>
-                            <div>
-                                <?php foreach ($includedModules as $module) { ?>
-                                    <small><?php echo e($module); ?></small>
-                                <?php } ?>
-                            </div>
-                        </div>
-                        <ul>
-                            <?php foreach ($featureList as $feature) { ?>
-                                <li>
-                                    <span aria-hidden="true">&check;</span>
-                                    <?php echo e($feature); ?>
-                                </li>
-                            <?php } ?>
-                            <li>
-                                <span aria-hidden="true">&check;</span>
-                                <?php echo e($plan->user_limit ? number_format($plan->user_limit).' users included' : 'Unlimited users'); ?>
-                            </li>
-                            <li>
-                                <span aria-hidden="true">&check;</span>
-                                <?php echo e($plan->equipment_limit ? number_format($plan->equipment_limit).' equipment records' : 'Unlimited equipment records'); ?>
-                            </li>
-                        </ul>
-                        <a href="<?php echo e(route('register', ['plan' => $plan->slug])); ?>" class="btn <?php echo e($isFeatured ? 'btn-dark' : 'btn-outline-secondary'); ?> w-100">
-                            Start <?php echo e($plan->name); ?>
-                        </a>
-                    </article>
-                <?php } ?>
-            <?php } else { ?>
-                <div class="panel">
-                    <h3>No plans configured yet.</h3>
-                    <p class="mb-0 text-muted">Subscription plans will appear here once pricing is configured.</p>
-                </div>
-            <?php } ?>
-        </div>
-    </section>
 </main>
 
-<footer class="landing-footer">
-    <span>RentalHook</span>
-    <div>
-        <a href="{{ route('login') }}">Login</a>
-        <a href="{{ route('customer-portal.login') }}">Customer Portal</a>
-    </div>
-</footer>
+@include('layouts.partials._public-footer')
 </body>
 </html>

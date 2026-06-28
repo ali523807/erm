@@ -1,0 +1,8 @@
+<svg class="rentalhook-logo" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rentalhook-mark-title">
+    <title id="rentalhook-mark-title">RentalHook</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M45 218V36h99c43 0 73 24 73 63 0 30-17 52-45 61l44 58h-50l-40-53h-33v53H45Zm48-93h47c18 0 29-10 29-25s-11-25-29-25H93v50Z" fill="#061A2F"/>
+    <path d="M181 120c32 10 55 39 55 72 0 43-35 78-78 78h-24" stroke="#059669" stroke-width="29" stroke-linecap="round"/>
+    <path d="M224 130l-34-31 2 46" fill="#059669"/>
+    <circle cx="136" cy="218" r="27" fill="#059669"/>
+    <circle cx="136" cy="218" r="12" fill="#FFFFFF"/>
+</svg>

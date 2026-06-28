@@ -211,26 +211,29 @@ a.sidebar-link {
 
 .brand-mark {
     align-items: center;
-    background: #111827;
-    border-radius: 8px;
-    color: #fff;
+    background: #fffaf0;
+    border: 1px solid rgba(255, 255, 255, .72);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .14);
     display: inline-flex;
-    height: 36px;
+    height: 44px;
     justify-content: center;
-    width: 36px;
+    overflow: hidden;
+    padding: 4px;
+    width: 44px;
 }
 
 .rentalhook-logo {
-    color: currentColor;
     display: block;
     height: 40px;
+    object-fit: contain;
     width: 40px;
 }
 
 .brand-mark .rentalhook-logo {
-    color: #ffffff;
-    height: 24px;
-    width: 24px;
+    border-radius: 8px;
+    height: 36px;
+    width: 36px;
 }
 
 .sidebar-nav-heading {
@@ -1282,6 +1285,196 @@ a.sidebar-link {
     color: #bfdbfe;
 }
 
+.infographic-band {
+    background:
+        radial-gradient(circle at top left, rgba(209, 250, 229, .7), transparent 34rem),
+        #f8fafc;
+}
+
+.infographic-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, .8fr);
+}
+
+.infographic-card {
+    background: #ffffff;
+    border: 1px solid var(--erm-line);
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, .07);
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1.15rem;
+}
+
+.infographic-flow {
+    grid-row: span 2;
+}
+
+.infographic-card-header {
+    align-items: center;
+    display: flex;
+    gap: .75rem;
+}
+
+.infographic-card-header > span,
+.contact-card-grid article > span,
+.contact-summary-icon {
+    align-items: center;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    color: #047857;
+    display: inline-flex;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+
+.infographic-card-header svg,
+.contact-card-grid article > span svg,
+.contact-summary-icon svg {
+    height: 21px;
+    width: 21px;
+}
+
+.infographic-card-header div {
+    display: grid;
+}
+
+.infographic-card-header strong {
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.infographic-card-header small,
+.signal-stack span {
+    color: var(--erm-muted);
+    font-size: .76rem;
+    font-weight: 800;
+}
+
+.contact-summary-card span {
+    color: rgba(255, 255, 255, .68);
+    font-size: .76rem;
+    font-weight: 800;
+}
+
+.contact-summary-icon svg {
+    color: #047857;
+}
+
+.flow-steps {
+    display: grid;
+    gap: .8rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.flow-steps div {
+    background: #f8fafc;
+    border: 1px solid var(--erm-line);
+    border-radius: 8px;
+    display: grid;
+    gap: .35rem;
+    min-height: 142px;
+    padding: .9rem;
+    position: relative;
+}
+
+.flow-steps div::after {
+    background: #bbf7d0;
+    content: "";
+    height: 2px;
+    position: absolute;
+    right: -1rem;
+    top: 2.1rem;
+    width: 1.15rem;
+}
+
+.flow-steps div:nth-child(3)::after,
+.flow-steps div:last-child::after {
+    display: none;
+}
+
+.flow-steps svg {
+    color: #047857;
+    height: 22px;
+    width: 22px;
+}
+
+.flow-steps strong {
+    font-weight: 900;
+}
+
+.flow-steps span {
+    color: var(--erm-muted);
+    font-size: .82rem;
+    line-height: 1.45;
+}
+
+.signal-stack {
+    display: grid;
+    gap: .8rem;
+}
+
+.signal-stack div {
+    display: grid;
+    gap: .35rem;
+}
+
+.signal-stack strong {
+    color: #111827;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.signal-stack i {
+    background: #047857;
+    border-radius: 999px;
+    display: block;
+    height: .55rem;
+    max-width: 100%;
+}
+
+.signal-stack div::after {
+    background: #e2e8f0;
+    border-radius: 999px;
+    content: "";
+    display: block;
+    height: .55rem;
+    margin-top: -.9rem;
+    position: relative;
+    z-index: 0;
+}
+
+.signal-stack i {
+    position: relative;
+    z-index: 1;
+}
+
+.region-map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+}
+
+.region-map span {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    color: #1e40af;
+    font-size: .78rem;
+    font-weight: 900;
+    padding: .35rem .65rem;
+}
+
+.infographic-card p {
+    color: var(--erm-muted);
+    line-height: 1.65;
+    margin-bottom: 0;
+}
+
 .feature-grid article {
     display: grid;
     gap: .65rem;
@@ -1429,22 +1622,171 @@ a.sidebar-link {
     margin-top: auto;
 }
 
-.landing-footer {
+.contact-hero {
     align-items: center;
+    background:
+        linear-gradient(90deg, rgba(15, 23, 42, .92), rgba(6, 95, 70, .86)),
+        url("/images/landing-equipment-yard.jpg") center/cover;
+    color: #ffffff;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+    padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
+}
+
+.contact-hero .eyebrow {
+    color: #a7f3d0;
+}
+
+.contact-hero h1 {
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+    margin: .5rem 0 1rem;
+    max-width: 760px;
+}
+
+.contact-hero p {
+    color: rgba(255, 255, 255, .82);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 640px;
+}
+
+.contact-summary-card {
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .24);
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, .22);
+    display: grid;
+    gap: .85rem;
+    padding: 1.25rem;
+    backdrop-filter: blur(14px);
+}
+
+.contact-summary-card strong {
+    font-size: 1.2rem;
+}
+
+.contact-summary-card p {
+    margin-bottom: .25rem;
+}
+
+.contact-summary-card div {
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 8px;
+    display: grid;
+    gap: .2rem;
+    padding: .8rem;
+}
+
+.contact-summary-card a {
+    color: #ffffff;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.contact-summary-card div strong {
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.contact-band {
+    background: #ffffff;
+}
+
+.contact-card-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contact-card-grid article {
+    background: #f8fafc;
+    border: 1px solid var(--erm-line);
+    border-radius: 8px;
+    display: grid;
+    gap: .75rem;
+    padding: 1.15rem;
+}
+
+.contact-card-grid strong {
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.contact-card-grid p {
+    color: var(--erm-muted);
+    line-height: 1.65;
+    margin-bottom: 0;
+}
+
+.contact-card-grid a {
+    color: #047857;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.landing-footer {
     background: #111827;
     color: #fff;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: minmax(260px, .9fr) minmax(0, 1.4fr);
     padding: 1.25rem clamp(1rem, 5vw, 5rem);
 }
 
-.landing-footer div {
-    display: flex;
+.landing-footer .brand-lockup {
+    color: #ffffff;
+}
+
+.landing-footer-brand {
+    display: grid;
+    gap: .85rem;
+}
+
+.landing-footer-brand p {
+    color: rgba(255, 255, 255, .7);
+    line-height: 1.65;
+    margin-bottom: 0;
+    max-width: 460px;
+}
+
+.landing-footer-links {
+    display: grid;
     gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.landing-footer-links div {
+    display: grid;
+    gap: .45rem;
+}
+
+.landing-footer-links strong {
+    color: #ffffff;
+    font-size: .78rem;
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
 .landing-footer a {
     color: rgba(255, 255, 255, .78);
+    overflow-wrap: anywhere;
+}
+
+.landing-footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    color: rgba(255, 255, 255, .62);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: .84rem;
+    gap: .75rem;
+    grid-column: 1 / -1;
+    justify-content: space-between;
+    padding-top: 1rem;
 }
 
 @media (max-width: 1199.98px) {
@@ -1486,6 +1828,7 @@ a.sidebar-link {
     }
 
     .hero-proof-grid,
+    .infographic-grid,
     .module-grid,
     .pricing-grid,
     .workspace-grid {
@@ -1502,6 +1845,16 @@ a.sidebar-link {
 
     .workflow-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .contact-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-card-grid,
+    .landing-footer,
+    .landing-footer-links {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1760,11 +2113,45 @@ a.sidebar-link {
 
     .feature-grid,
     .hero-proof-grid,
+    .infographic-grid,
     .module-grid,
     .pricing-grid,
     .software-preview-grid,
     .workspace-grid,
     .workflow-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .flow-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .flow-steps div {
+        min-height: 0;
+    }
+
+    .flow-steps div::after {
+        bottom: -1rem;
+        height: 1.15rem;
+        left: 1.55rem;
+        right: auto;
+        top: auto;
+        width: 2px;
+    }
+
+    .flow-steps div:nth-child(3)::after {
+        display: block;
+    }
+
+    .contact-hero {
+        padding: 3.75rem 1rem 2.5rem;
+    }
+
+    .contact-hero h1 {
+        font-size: 2.55rem;
+    }
+
+    .contact-card-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1837,9 +2224,12 @@ a.sidebar-link {
     }
 
     .landing-footer {
-        align-items: flex-start;
+        gap: 1.25rem;
+        padding: 2rem 1rem;
+    }
+
+    .landing-footer-bottom {
         display: grid;
-        gap: .75rem;
     }
 
     .selected-plan-card {
@@ -1876,8 +2266,13 @@ a.sidebar-link {
 
 @media (max-width: 420px) {
     .brand-mark {
-        height: 34px;
-        width: 34px;
+        height: 40px;
+        width: 40px;
+    }
+
+    .brand-mark .rentalhook-logo {
+        height: 32px;
+        width: 32px;
     }
 
     .landing-hero h1 {
@@ -1892,9 +2287,9 @@ a.sidebar-link {
         font-size: 2rem;
     }
 
-    .landing-footer div {
+    .landing-footer-links {
         display: grid;
-        gap: .45rem;
+        gap: 1rem;
     }
 }
 
